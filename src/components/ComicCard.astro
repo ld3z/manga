@@ -1,5 +1,6 @@
 ---
 import type { Comic } from '../lib/types';
+import { Image } from 'astro:assets';
 
 interface Props {
   comic: Comic;
@@ -13,7 +14,7 @@ const coverUrl = comic.md_comics.md_covers[0]
 
 <div class="comic-card">
   <a href={`https://comick.io/comic/${comic.md_comics.slug}`} target="_blank" rel="noopener noreferrer">
-    <img src={coverUrl} alt={comic.md_comics.title} />
+    <Image src={coverUrl} alt={comic.md_comics.title} />
     <div class="comic-info">
       <h3>{comic.md_comics.title}</h3>
       <p>Chapter {comic.chap}</p>

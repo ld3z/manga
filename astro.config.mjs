@@ -1,10 +1,7 @@
-import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel';
-
-import betterImageService from 'astro-better-image-service';
+import { defineConfig } from "astro/config";
+import vercel from "@astrojs/vercel";
 
 export default defineConfig({
-  output: 'server',
+  output: "server",
   adapter: vercel(),
-  integrations: [betterImageService()],
 });
