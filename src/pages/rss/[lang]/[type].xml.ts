@@ -21,16 +21,16 @@ export const GET: APIRoute = async ({ params, request }) => {
     description: `A simple RSS feed for ComicK!`,
     site: "https://github.com/ld3z/manga-rss",
     items: comics.map((comic) => ({
-      title: `<![CDATA[${comic.md_comics.title} - Chapter ${comic.chap}]]`,
+      title: `${comic.md_comics.title} - Chapter ${comic.chap}`,
       link: `https://comick.io/comic/${comic.md_comics.slug}`,
       pubDate: new Date(comic.updated_at),
-      description: `<![CDATA[Chapter ${comic.chap} of ${
+      description: `Chapter ${comic.chap} of ${
         comic.md_comics.title
       } is now available on ComicK!
         ${
           comic.md_comics.md_covers[0]
             ? `<img src="https://meo.comick.pictures/${comic.md_comics.md_covers[0].b2key}" 
-              alt="Cover" style="max-width: 300px;" />]]`
+              alt="Cover" style="max-width: 300px;" />`
             : ""
         }
       `,
