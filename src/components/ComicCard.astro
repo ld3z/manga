@@ -1,4 +1,5 @@
 ---
+// Import the necessary types and assets
 import type { Comic } from '../lib/types';
 import { Image } from 'astro:assets';
 
@@ -7,14 +8,29 @@ interface Props {
 }
 
 const { comic } = Astro.props;
-const coverUrl = comic.md_comics.md_covers[0] 
+
+// Determine if the file is AVIF based on the URL
+const isAvif = comic.md_comics.md_covers[0]?.b2key.endsWith('.avif');
+
+const coverUrl = comic.md_comics.md_covers[0]
   ? `https://meo.comick.pictures/${comic.md_comics.md_covers[0].b2key}`
   : '/placeholder.png';
 ---
-
 <div class="comic-card">
   <a href={`https://comick.io/comic/${comic.md_comics.slug}`} target="_blank" rel="noopener noreferrer">
-    <Image src={coverUrl} alt={comic.md_comics.title} />
+    {!isAvif ? (
+      // Infer size only for non-AVIF files
+      <Image src={coverUrl} alt={comic.md_comics.title} inferSize={true} />
+    ) : (
+      // Provide fallback handling for AVIF files
+      <img
+        src={coverUrl}
+        alt={comic.md_comics.title}
+        width="300" // Default width
+        height="300" // Default height
+        style={{ objectFit: 'cover' }}
+      />
+    )}
     <div class="comic-info">
       <h3>{comic.md_comics.title}</h3>
       <p>Chapter {comic.chap}</p>
