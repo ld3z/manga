@@ -34,7 +34,7 @@ const coverUrl = comic.md_comics.md_covers[0]
     <div class="comic-info">
       <h3>{comic.md_comics.title}</h3>
       <p>Chapter {comic.chap}</p>
-      <p class="date">{new Date(comic.updated_at).toLocaleString()}</p>
+      <p class="date">{new Date(comic.updated_at).toLocaleString(undefined, { timeStyle: "short" })}</p>
     </div>
   </a>
 </div>
