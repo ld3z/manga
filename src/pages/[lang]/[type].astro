@@ -1,0 +1,125 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ComicCard from '../../components/ComicCard.astro';
+import LanguageSelector from '../../components/LanguageSelector.astro';
+import RSSLink from '../../components/RSSLink.astro';
+import { fetchComics, isValidLanguage, isValidContentType } from '../../lib/api';
+import type { Comic } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const languages = ['en', 'fr', 'es', 'it', 'pl', 'tr', 'ja', 'zh', 'sv'];
+  const types = ['sfw', 'nsfw'];
+  
+  return languages.flatMap(lang => 
+    types.map(type => ({
+      params: { lang, type },
+    }))
+  );
+}
+
+const { lang, type } = Astro.params;
+
+if (!isValidLanguage(lang!) || !isValidContentType(type!)) {
+  return Astro.redirect('/en/sfw');
+}
+
+let comics: Comic[] = [];
+let error: string | null = null;
+
+try {
+  comics = await fetchComics(lang, type);
+  console.log(`Fetched ${comics.length} comics`); // Debug log
+} catch (e) {
+  console.error('Failed to fetch comics:', e);
+  error = e instanceof Error ? e.message : 'Failed to fetch comics';
+}
+---
+
+<Layout title={`Comick - ${lang?.toUpperCase()} ${type?.toUpperCase()}`}>
+  <main>
+    <h1>ComicK-RSS</h1>
+    <div class="controls">
+      <LanguageSelector currentLang={lang!} currentType={type!} />
+      <RSSLink lang={lang!} type={type!} />
+    </div>
+    
+    {error && (
+      <div class="error-message">
+        <p>Error: {error}</p>
+      </div>
+    )}
+    
+    {comics.length > 0 ? (
+      <div class="comics-grid">
+        {comics.map(comic => (
+          <ComicCard comic={comic} />
+        ))}
+      </div>
+    ) : (
+      <div class="no-comics">
+        <p>No comics found. Please try a different language or content type.</p>
+        <p class="debug-info">Language: {lang}, Type: {type}</p>
+      </div>
+    )}
+  </main>
+</Layout>
+
+<style>
+  main {
+    margin: auto;
+    padding: 1rem;
+    width: 1200px;
+    max-width: calc(100% - 2rem);
+    color: white;
+    font-size: 20px;
+    line-height: 1.6;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    margin-bottom: 1em;
+    background-image: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 400%;
+    background-position: 0%;
+  }
+
+  .comics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 0;
+  }
+
+  .no-comics {
+    text-align: center;
+    padding: 2rem;
+    background: #23262d;
+    border-radius: 8px;
+  }
+
+  .error-message {
+    background: #ff4444;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+
+  .debug-info {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 1rem;
+  }
+</style>

@@ -1,0 +1,68 @@
+---
+import type { Comic } from '../lib/types';
+
+interface Props {
+  comic: Comic;
+}
+
+const { comic } = Astro.props;
+const coverUrl = comic.md_comics.md_covers[0] 
+  ? `https://meo.comick.pictures/${comic.md_comics.md_covers[0].b2key}`
+  : '/placeholder.png';
+---
+
+<div class="comic-card">
+  <a href={`https://comick.io/comic/${comic.md_comics.slug}`} target="_blank" rel="noopener noreferrer">
+    <img src={coverUrl} alt={comic.md_comics.title} />
+    <div class="comic-info">
+      <h3>{comic.md_comics.title}</h3>
+      <p>Chapter {comic.chap}</p>
+      <p class="date">{new Date(comic.updated_at).toLocaleDateString()}</p>
+    </div>
+  </a>
+</div>
+
+<style>
+  .comic-card {
+    background: #23262d;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .comic-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .comic-card a {
+    text-decoration: none;
+    color: white;
+  }
+
+  .comic-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .comic-info {
+    padding: 1rem;
+  }
+
+  .comic-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .comic-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #888;
+  }
+
+  .date {
+    margin-top: 0.5rem;
+    font-size: 0.8rem !important;
+  }
+</style>

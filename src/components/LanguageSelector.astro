@@ -1,0 +1,59 @@
+---
+import { availableLanguages, availableContentTypes } from '../lib/api';
+
+interface Props {
+  currentLang: string;
+  currentType: string;
+}
+
+const { currentLang, currentType } = Astro.props;
+---
+
+<div class="filters">
+  <select name="language" id="language">
+    {availableLanguages.map(lang => (
+      <option value={lang} selected={lang === currentLang}>{lang.toUpperCase()}</option>
+    ))}
+  </select>
+
+  <select name="contentType" id="contentType">
+    {availableContentTypes.map(type => (
+      <option value={type} selected={type === currentType}>{type.toUpperCase()}</option>
+    ))}
+  </select>
+</div>
+
+<script>
+  const langSelect = document.getElementById('language') as HTMLSelectElement;
+  const typeSelect = document.getElementById('contentType') as HTMLSelectElement;
+
+  function updateURL() {
+    const lang = langSelect.value;
+    const type = typeSelect.value;
+    window.location.href = `/${lang}/${type}`;
+  }
+
+  langSelect.addEventListener('change', updateURL);
+  typeSelect.addEventListener('change', updateURL);
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  select {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    background: #23262d;
+    color: white;
+    border: 1px solid #444;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: rgb(var(--accent));
+  }
+</style>
