@@ -1,13 +1,24 @@
 import type { Comic } from './types';
 
-const languages = new Set(["en", "fr", "es", "it", "pl", "tr", "ja", "zh", "sv"]);
+const languageMap = {
+  "en": "English",
+  "fr": "French",
+  "es": "Spanish",
+  "it": "Italian",
+  "pl": "Polish",
+  "tr": "Turkish",
+  "ja": "Japanese",
+  "zh": "Chinese",
+  "sv": "Swedish"
+} as const;
+
+const languages = new Set(Object.keys(languageMap));
 const contentTypes = new Set(["sfw", "nsfw"]);
-const urlBase = "https://api.comick.fun/chapter";  // Removed trailing slash
+const urlBase = "https://api.comick.fun/chapter";
 
 export async function fetchComics(language: string = 'en', contentType: string = 'sfw'): Promise<Comic[]> {
   try {
     const apiUrl = `${urlBase}?lang=${language}&page=1&order=new&accept_erotic_content=${contentType === 'nsfw'}`;
-    // console.log('Fetching from:', apiUrl); // Debug log
     
     const response = await fetch(apiUrl, {
       headers: {
@@ -21,7 +32,6 @@ export async function fetchComics(language: string = 'en', contentType: string =
     }
 
     const data = await response.json();
-    // console.log('API response:', data); // Debug log
 
     if (!Array.isArray(data)) {
       console.error('Unexpected API response format:', data);
@@ -43,5 +53,10 @@ export function isValidContentType(type: string): boolean {
   return contentTypes.has(type);
 }
 
+export function getLanguageName(code: string): string {
+  return languageMap[code as keyof typeof languageMap] || code.toUpperCase();
+}
+
 export const availableLanguages = Array.from(languages);
 export const availableContentTypes = Array.from(contentTypes);
+export { languageMap };

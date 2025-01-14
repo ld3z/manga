@@ -1,5 +1,5 @@
 ---
-import { availableLanguages, availableContentTypes } from '../lib/api';
+import { availableLanguages, availableContentTypes, getLanguageName } from '../lib/api';
 
 interface Props {
   currentLang: string;
@@ -12,13 +12,17 @@ const { currentLang, currentType } = Astro.props;
 <div class="filters">
   <select name="language" id="language">
     {availableLanguages.map(lang => (
-      <option value={lang} selected={lang === currentLang}>{lang.toUpperCase()}</option>
+      <option value={lang} selected={lang === currentLang}>
+        {getLanguageName(lang)}
+      </option>
     ))}
   </select>
 
   <select name="contentType" id="contentType">
     {availableContentTypes.map(type => (
-      <option value={type} selected={type === currentType}>{type.toUpperCase()}</option>
+      <option value={type} selected={type === currentType}>
+        {type.toUpperCase()}
+      </option>
     ))}
   </select>
 </div>
@@ -47,9 +51,9 @@ const { currentLang, currentType } = Astro.props;
   select {
     padding: 0.5rem 1rem;
     border-radius: 4px;
-    background: #23262d;
-    color: white;
-    border: 1px solid #444;
+    background: var(--bg-secondary);
+    color: var(--text-color);
+    border: 1px solid var(--bg-hover);
   }
 
   select:focus {

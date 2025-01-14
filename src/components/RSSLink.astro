@@ -21,9 +21,9 @@ const { lang, type } = Astro.props;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: white;
+    color: var(--text-color);
     text-decoration: none;
-    background: #23262d;
+    background: var(--bg-secondary);
     padding: 0.5rem 1rem;
     border-radius: 4px;
     transition: all 0.2s;
@@ -31,6 +31,7 @@ const { lang, type } = Astro.props;
 
   .rss-link:hover {
     background: rgb(var(--accent));
+    color: white;
   }
 
   svg {
