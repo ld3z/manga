@@ -1,4 +1,4 @@
-import type { Comic } from './types';
+import type { Comic, Genre } from './types';
 
 const languageMap = {
   "en": "English",
@@ -15,6 +15,28 @@ const languageMap = {
 const languages = new Set(Object.keys(languageMap));
 const contentTypes = new Set(["sfw", "nsfw"]);
 const urlBase = "https://api.comick.fun/chapter";
+
+let genreCache: Genre[] = [];
+
+export async function fetchGenres(): Promise<Genre[]> {
+  if (genreCache.length > 0) return genreCache;
+
+  try {
+    const response = await fetch('https://api.comick.fun/genre');
+    if (!response.ok) throw new Error(`Failed to fetch genres: ${response.status}`);
+    genreCache = await response.json();
+    return genreCache;
+  } catch (error) {
+    console.error('Error fetching genres:', error);
+    return [];
+  }
+}
+
+export function getGenreNames(genreIds: number[], genres: Genre[]): string[] {
+  return genreIds
+    .map(id => genres.find(g => g.id === id)?.name ?? '')
+    .filter(name => name !== '');
+}
 
 export async function fetchComics(language: string = 'en', contentType: string = 'sfw'): Promise<Comic[]> {
   try {

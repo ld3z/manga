@@ -1,13 +1,15 @@
 ---
-// Import the necessary types and assets
-import type { Comic } from '../lib/types';
+import type { Comic, Genre } from '../lib/types';
 import { Image } from 'astro:assets';
+import { getGenreNames } from '../lib/api';
 
 interface Props {
   comic: Comic;
+  genres: Genre[];
 }
 
-const { comic } = Astro.props;
+const { comic, genres } = Astro.props;
+const genreNames = getGenreNames(comic.md_comics.genres, genres);
 
 // Determine if the file is AVIF based on the URL
 const isAvif = comic.md_comics.md_covers[0]?.b2key.endsWith('.avif');
@@ -19,21 +21,28 @@ const coverUrl = comic.md_comics.md_covers[0]
 <div class="comic-card">
   <a href={`https://comick.io/comic/${comic.md_comics.slug}`} target="_blank" rel="noopener noreferrer">
     {!isAvif ? (
-      // Infer size only for non-AVIF files
       <Image src={coverUrl} alt={comic.md_comics.title} inferSize={true} />
     ) : (
-      // Provide fallback handling for AVIF files
       <img
         src={coverUrl}
         alt={comic.md_comics.title}
-        width="300" // Default width
-        height="300" // Default height
+        width="300"
+        height="300"
         style={{ objectFit: 'cover' }}
       />
     )}
     <div class="comic-info">
       <h3>{comic.md_comics.title}</h3>
-      <p>Chapter {comic.chap}</p>
+      <p class="chapter">Chapter {comic.chap}</p>
+      {genreNames.length > 0 && (
+        <div class="genres" aria-label="Comic genres">
+          {genreNames.map(genre => (
+            <span class="genre-tag" title={genre}>
+              {genre}
+            </span>
+          ))}
+        </div>
+      )}
       <p class="date">{new Date(comic.updated_at).toLocaleString(undefined, { timeStyle: "short" })}</p>
     </div>
   </a>
@@ -42,13 +51,15 @@ const coverUrl = comic.md_comics.md_covers[0]
 <style>
   .comic-card {
     background: var(--bg-secondary);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .comic-card:hover {
     transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   .comic-card a {
@@ -60,26 +71,91 @@ const coverUrl = comic.md_comics.md_covers[0]
     width: 100%;
     height: 300px;
     object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .comic-card:hover img {
+    transform: scale(1.05);
   }
 
   .comic-info {
-    padding: 1rem;
+    padding: 1.25rem;
+    position: relative;
+    background: var(--bg-secondary);
   }
 
   .comic-info h3 {
     margin: 0;
     font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.4;
     margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .comic-info p {
+  .chapter {
     margin: 0;
     font-size: 0.9rem;
-    color: #888;
+    color: rgb(var(--accent));
+    font-weight: 500;
   }
 
   .date {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     font-size: 0.8rem !important;
+    color: var(--text-color);
+    opacity: 0.6;
+  }
+
+  .genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.75rem 0;
+    max-height: 4.8rem;
+    overflow: hidden;
+  }
+
+  .genre-tag {
+    background: rgba(var(--accent), 0.1);
+    color: rgb(var(--accent));
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 150px;
+  }
+
+  .genre-tag:hover {
+    background: rgba(var(--accent), 0.15);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .comic-info {
+      padding: 1rem;
+    }
+
+    .comic-info h3 {
+      font-size: 1rem;
+    }
+
+    .genres {
+      margin: 0.5rem 0;
+      max-height: 3.6rem;
+    }
+
+    .genre-tag {
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+    }
   }
 </style>

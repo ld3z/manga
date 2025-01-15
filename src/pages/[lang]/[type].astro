@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import ComicCard from '../../components/ComicCard.astro';
 import LanguageSelector from '../../components/LanguageSelector.astro';
 import RSSLink from '../../components/RSSLink.astro';
-import { fetchComics, isValidLanguage, isValidContentType } from '../../lib/api';
+import { fetchComics, isValidLanguage, isValidContentType, fetchGenres } from '../../lib/api';
 import type { Comic } from '../../lib/types';
 
 export async function getStaticPaths() {
@@ -25,6 +25,7 @@ if (!isValidLanguage(lang!) || !isValidContentType(type!)) {
 
 let comics: Comic[] = [];
 let error: string | null = null;
+const genres = await fetchGenres();
 
 try {
   comics = await fetchComics(lang, type);
@@ -52,7 +53,7 @@ try {
     {comics.length > 0 ? (
       <div class="comics-grid">
         {comics.map(comic => (
-          <ComicCard comic={comic} />
+          <ComicCard comic={comic} genres={genres} />
         ))}
       </div>
     ) : (
