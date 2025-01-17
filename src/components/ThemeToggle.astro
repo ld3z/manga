@@ -1,7 +1,21 @@
 ---
 ---
-<button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-  <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<button 
+  id="theme-toggle" 
+  class="fixed top-4 right-4 z-50 p-2 w-10 h-10 rounded-full bg-secondary hover:bg-hover flex items-center justify-center transition-colors"
+  aria-label="Toggle theme"
+>
+  <svg 
+    class="w-5 h-5 absolute transition-transform duration-500" 
+    data-theme-icon="light"
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    stroke-width="2"
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  >
     <circle cx="12" cy="12" r="5"></circle>
     <line x1="12" y1="1" x2="12" y2="3"></line>
     <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -12,7 +26,17 @@
     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
   </svg>
-  <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg 
+    class="w-5 h-5 absolute transition-transform duration-500" 
+    data-theme-icon="dark"
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    stroke-width="2"
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  >
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
   </svg>
 </button>
@@ -21,6 +45,20 @@
   const setTheme = (theme: 'light' | 'dark') => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
+    updateIcons(theme);
+  };
+
+  const updateIcons = (theme: string) => {
+    const lightIcon = document.querySelector('[data-theme-icon="light"]');
+    const darkIcon = document.querySelector('[data-theme-icon="dark"]');
+    
+    if (theme === 'light') {
+      lightIcon?.classList.remove('translate-y-full');
+      darkIcon?.classList.add('translate-y-full');
+    } else {
+      lightIcon?.classList.add('translate-y-full');
+      darkIcon?.classList.remove('translate-y-full');
+    }
   };
 
   // Initialize theme
@@ -36,47 +74,3 @@
     setTheme(newTheme);
   });
 </script>
-
-<style>
-  .theme-toggle {
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 100;
-    background: var(--bg-secondary);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease;
-  }
-
-  .theme-toggle:hover {
-    background: var(--bg-hover);
-  }
-
-  .sun-icon,
-  .moon-icon {
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    transition: transform 0.5s ease, opacity 0.5s ease;
-  }
-
-  :global([data-theme="dark"]) .sun-icon {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  :global([data-theme="light"]) .moon-icon {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-</style>

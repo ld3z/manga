@@ -9,8 +9,12 @@ interface Props {
 const { currentLang, currentType } = Astro.props;
 ---
 
-<div class="filters">
-  <select name="language" id="language">
+<div class="flex flex-wrap gap-4">
+  <select 
+    name="language" 
+    id="language"
+    class="px-4 py-2 rounded-md bg-secondary text-primary border border-hover focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+  >
     {availableLanguages.map(lang => (
       <option value={lang} selected={lang === currentLang}>
         {getLanguageName(lang)}
@@ -18,7 +22,11 @@ const { currentLang, currentType } = Astro.props;
     ))}
   </select>
 
-  <select name="contentType" id="contentType">
+  <select 
+    name="contentType" 
+    id="contentType"
+    class="px-4 py-2 rounded-md bg-secondary text-primary border border-hover focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+  >
     {availableContentTypes.map(type => (
       <option value={type} selected={type === currentType}>
         {type.toUpperCase()}
@@ -40,24 +48,3 @@ const { currentLang, currentType } = Astro.props;
   langSelect.addEventListener('change', updateURL);
   typeSelect.addEventListener('change', updateURL);
 </script>
-
-<style>
-  .filters {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  select {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    background: var(--bg-secondary);
-    color: var(--text-color);
-    border: 1px solid var(--bg-hover);
-  }
-
-  select:focus {
-    outline: none;
-    border-color: rgb(var(--accent));
-  }
-</style>

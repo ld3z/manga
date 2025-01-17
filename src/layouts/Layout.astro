@@ -2,7 +2,7 @@
 import ThemeToggle from '../components/ThemeToggle.astro';
 
 interface Props {
-	title: string;
+  title: string;
 }
 
 const { title } = Astro.props;
@@ -10,82 +10,70 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="description" content="Astro description" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
-	</head>
-	<body>
-		<ThemeToggle />
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Astro description" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-primary text-primary">
+    <ThemeToggle />
+    <slot />
+  </body>
 </html>
+
 <style is:global>
-	:root {
-		--accent: 136, 58, 234;
-		--accent-light: 224, 204, 250;
-		--accent-dark: 49, 10, 101;
-		--accent-gradient: linear-gradient(
-			45deg,
-			rgb(var(--accent)),
-			rgb(var(--accent-light)) 30%,
-			white 60%
-		);
-	}
+  :root {
+    --accent: 136, 58, 234;
+    --accent-light: 224, 204, 250;
+    --accent-dark: 49, 10, 101;
+    --accent-gradient: linear-gradient(
+      45deg,
+      rgb(var(--accent)),
+      rgb(var(--accent-light)) 30%,
+      white 60%
+    );
+  }
 
-	/* Light theme */
-	:root[data-theme="light"] {
-		--bg-primary: #ffffff;
-		--bg-secondary: #f0f0f0;
-		--bg-hover: #e0e0e0;
-		--text-color: #13151a;
-		--card-bg: #f5f5f5;
-	}
+  /* Light theme */
+  :root[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f0f0f0;
+    --bg-hover: #e0e0e0;
+    --text-color: #13151a;
+  }
 
-	/* Dark theme */
-	:root[data-theme="dark"] {
-		--bg-primary: #13151a;
-		--bg-secondary: #23262d;
-		--bg-hover: #2a2d35;
-		--text-color: #ffffff;
-		--card-bg: #23262d;
-	}
+  /* Dark theme */
+  :root[data-theme="dark"] {
+    --bg-primary: #13151a;
+    --bg-secondary: #23262d;
+    --bg-hover: #2a2d35;
+    --text-color: #ffffff;
+  }
 
-	/* Default to dark theme if no data-theme is set */
-	:root:not([data-theme]) {
-		--bg-primary: #13151a;
-		--bg-secondary: #23262d;
-		--bg-hover: #2a2d35;
-		--text-color: #ffffff;
-		--card-bg: #23262d;
-	}
+  /* Default to dark theme if no data-theme is set */
+  :root:not([data-theme]) {
+    --bg-primary: #13151a;
+    --bg-secondary: #23262d;
+    --bg-hover: #2a2d35;
+    --text-color: #ffffff;
+  }
 
-	html {
-		font-family: system-ui, sans-serif;
-		background-color: var(--bg-primary);
-		color: var(--text-color);
-	}
+  html {
+    font-family: system-ui, sans-serif;
+  }
 
-	body {
-		margin: 0;
-		min-height: 100vh;
-		background-color: var(--bg-primary);
-		color: var(--text-color);
-		transition: background-color 0.3s ease, color 0.3s ease;
-	}
-
-	code {
-		font-family:
-			Menlo,
-			Monaco,
-			Lucida Console,
-			Liberation Mono,
-			DejaVu Sans Mono,
-			Bitstream Vera Sans Mono,
-			Courier New,
-			monospace;
-	}
+  code {
+    font-family:
+      Menlo,
+      Monaco,
+      Lucida Console,
+      Liberation Mono,
+      DejaVu Sans Mono,
+      Bitstream Vera Sans Mono,
+      Courier New,
+      monospace;
+  }
 </style>
