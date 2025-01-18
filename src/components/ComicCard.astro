@@ -16,39 +16,133 @@ const coverUrl = comic.md_comics.md_covers[0]
   : '/placeholder.png';
 ---
 
-<div class="group bg-secondary rounded-xl overflow-hidden shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg h-full flex flex-col max-w-[250px] mx-auto">
+<div class="group relative bg-secondary rounded-xl overflow-visible shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl h-full flex flex-col max-w-[280px] mx-auto border border-hover/30">
   <a href={`https://comick.io/comic/${comic.md_comics.slug}`} target="_blank" rel="noopener noreferrer" class="flex flex-col h-full">
-    {!isAvif ? (
-      <Image 
-        src={coverUrl} 
-        alt={comic.md_comics.title} 
-        inferSize={true}
-        class="w-full h-[375px] object-cover transition-transform duration-300 group-hover:scale-105"
-      />
-    ) : (
-      <img
-        src={coverUrl}
-        alt={comic.md_comics.title}
-        width="250"
-        height="375"
-        class="w-full h-[375px] object-cover transition-transform duration-300 group-hover:scale-105"
-      />
-    )}
-    <div class="p-4 md:p-5 flex-grow flex flex-col bg-secondary">
-      <h3 class="text-lg font-semibold mb-2 line-clamp-2">{comic.md_comics.title}</h3>
-      <p class="text-accent font-medium">Chapter {comic.chap}</p>
-      {genreNames.length > 0 && (
-        <div class="flex flex-wrap gap-2 my-3" aria-label="Comic genres">
-          {genreNames.map(genre => (
-            <span class="bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-medium truncate max-w-[150px] md:max-w-[120px] transition-all hover:bg-accent/15 hover:-translate-y-0.5" title={genre}>
-              {genre}
-            </span>
-          ))}
-        </div>
+    <div class="relative overflow-hidden aspect-[2/3] rounded-t-xl">
+      {!isAvif ? (
+        <Image 
+          src={coverUrl} 
+          alt={comic.md_comics.title} 
+          inferSize={true}
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+      ) : (
+        <img
+          src={coverUrl}
+          alt={comic.md_comics.title}
+          width="280"
+          height="420"
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
       )}
-      <p class="mt-auto text-sm text-primary/60">
-        {new Date(comic.updated_at).toLocaleString(undefined, { timeStyle: "short" })}
-      </p>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    </div>
+    
+    <div class="p-4 md:p-5 flex-grow flex flex-col bg-secondary relative rounded-b-xl">
+      <div class="absolute -top-8 left-3 right-3 bg-secondary/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-hover/30">
+        <h3 class="text-lg font-bold line-clamp-1 text-center">{comic.md_comics.title}</h3>
+      </div>
+      
+      <div class="mt-6">
+        <p class="inline-block bg-accent/20 text-accent px-4 py-1 rounded-full text-sm font-semibold">
+          Chapter {comic.chap}
+        </p>
+        
+        {genreNames.length > 0 && (
+          <div class="relative mt-3" aria-label="Comic genres">
+            <div class="flex flex-wrap gap-2">
+              {genreNames.slice(0, 3).map(genre => (
+                <span class="bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium truncate transition-all hover:bg-hover/80" title={genre}>
+                  {genre}
+                </span>
+              ))}
+              {genreNames.length > 3 && (
+                <button 
+                  type="button"
+                  class="expand-tags-btn bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium hover:bg-hover/80 cursor-pointer transition-colors"
+                  aria-expanded="false"
+                  aria-controls={`tags-${comic.id}`}
+                >
+                  +{genreNames.length - 3} more
+                </button>
+              )}
+            </div>
+            
+            {genreNames.length > 3 && (
+              <div 
+                id={`tags-${comic.id}`}
+                class="expanded-tags absolute left-0 right-0 bg-secondary/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-hover/30 opacity-0 invisible transition-all duration-300 z-50 mt-2"
+              >
+                <div class="flex flex-wrap gap-2">
+                  {genreNames.slice(3).map(genre => (
+                    <span class="bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium truncate transition-all hover:bg-hover/80" title={genre}>
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      <div class="mt-auto pt-4 flex items-center justify-between text-sm text-primary/60 border-t border-hover/30">
+        <time datetime={comic.updated_at}>
+          {new Date(comic.updated_at).toLocaleString(undefined, { 
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </time>
+        <span class="group-hover:text-accent transition-colors duration-300">Read Now →</span>
+      </div>
     </div>
   </a>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('.expand-tags-btn');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        const targetId = button.getAttribute('aria-controls');
+        const expandedTags = document.getElementById(targetId);
+        
+        if (expandedTags) {
+          if (!expanded) {
+            expandedTags.classList.add('opacity-100', 'visible');
+            expandedTags.classList.remove('opacity-0', 'invisible');
+            button.setAttribute('aria-expanded', 'true');
+            button.textContent = 'Show less';
+            
+            // Close when clicking outside
+            const closeHandler = (event: MouseEvent) => {
+              if (!expandedTags.contains(event.target as Node) && !button.contains(event.target as Node)) {
+                expandedTags.classList.remove('opacity-100', 'visible');
+                expandedTags.classList.add('opacity-0', 'invisible');
+                button.setAttribute('aria-expanded', 'false');
+                button.textContent = `+${expandedTags.querySelectorAll('span').length} more`;
+                document.removeEventListener('click', closeHandler);
+              }
+            };
+            
+            setTimeout(() => {
+              document.addEventListener('click', closeHandler);
+            }, 0);
+          } else {
+            expandedTags.classList.remove('opacity-100', 'visible');
+            expandedTags.classList.add('opacity-0', 'invisible');
+            button.setAttribute('aria-expanded', 'false');
+            button.textContent = `+${expandedTags.querySelectorAll('span').length} more`;
+          }
+        }
+      });
+    });
+  });
+</script>
