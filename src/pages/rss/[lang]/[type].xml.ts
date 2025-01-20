@@ -70,5 +70,9 @@ export function getStaticPaths() {
     { params: { lang: "zh", type: "nsfw" } },
     { params: { lang: "sv", type: "sfw" } },
     { params: { lang: "sv", type: "nsfw" } },
+    { params: { lang: "ar", type: "sfw" } },
+    { params: { lang: "ar", type: "nsfw" } },
+    { params: { lang: "de", type: "sfw" } },
+    { params: { lang: "de", type: "nsfw" } },
   ];
 }

@@ -9,7 +9,9 @@ const languageMap = {
   "tr": "Turkish",
   "ja": "Japanese",
   "zh": "Chinese",
-  "sv": "Swedish"
+  "sv": "Swedish",
+  "ar": "Arabic",
+  "de": "German"
 } as const;
 
 const languages = new Set(Object.keys(languageMap));
