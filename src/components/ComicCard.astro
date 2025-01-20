@@ -39,8 +39,10 @@ const coverUrl = comic.md_comics.md_covers[0]
     </div>
     
     <div class="p-4 md:p-5 flex-grow flex flex-col bg-secondary relative rounded-b-xl">
-      <div class="absolute -top-8 left-3 right-3 bg-secondary/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-hover/30">
-        <h3 class="text-lg font-bold line-clamp-1 text-center">{comic.md_comics.title}</h3>
+      <div class="absolute -top-8 left-3 right-3 bg-secondary/95 backdrop-blur-[12px] p-3 rounded-lg shadow-lg border border-hover/30">
+        <h3 class="text-lg font-bold line-clamp-1 text-center text-primary drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
+          {comic.md_comics.title}
+        </h3>
       </div>
       
       <div class="mt-6">
@@ -61,7 +63,7 @@ const coverUrl = comic.md_comics.md_covers[0]
                   type="button"
                   class="expand-tags-btn bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium hover:bg-hover/80 cursor-pointer transition-colors"
                   aria-expanded="false"
-                  aria-controls={`tags-${comic.id}`}
+                  data-comic-id={comic.id}
                 >
                   +{genreNames.length - 3} more
                 </button>
@@ -71,7 +73,8 @@ const coverUrl = comic.md_comics.md_covers[0]
             {genreNames.length > 3 && (
               <div 
                 id={`tags-${comic.id}`}
-                class="expanded-tags absolute left-0 right-0 bg-secondary/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-hover/30 opacity-0 invisible transition-all duration-300 z-50 mt-2"
+                class="expanded-tags bg-secondary/95 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-hover/30 hidden"
+                role="tooltip"
               >
                 <div class="flex flex-wrap gap-2">
                   {genreNames.slice(3).map(genre => (
@@ -102,45 +105,67 @@ const coverUrl = comic.md_comics.md_covers[0]
 </div>
 
 <script>
+  import { computePosition, flip, shift, offset } from '@floating-ui/dom';
+
   document.addEventListener('DOMContentLoaded', () => {
     const buttons = document.querySelectorAll('.expand-tags-btn');
     
     buttons.forEach(button => {
+      const comicId = button.getAttribute('data-comic-id');
+      const tooltip = document.getElementById(`tags-${comicId}`);
+      
+      if (!tooltip) return;
+
+      function updatePosition() {
+        computePosition(button, tooltip, {
+          placement: 'bottom',
+          middleware: [
+            offset(8),
+            flip(),
+            shift({ padding: 8 })
+          ],
+        }).then(({x, y}) => {
+          Object.assign(tooltip.style, {
+            left: `${x}px`,
+            top: `${y}px`,
+          });
+        });
+      }
+
+      function showTooltip() {
+        tooltip.classList.remove('hidden');
+        updatePosition();
+      }
+
+      function hideTooltip() {
+        tooltip.classList.add('hidden');
+      }
+
       button.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         
-        const expanded = button.getAttribute('aria-expanded') === 'true';
-        const targetId = button.getAttribute('aria-controls');
-        const expandedTags = document.getElementById(targetId);
+        const isHidden = tooltip.classList.contains('hidden');
         
-        if (expandedTags) {
-          if (!expanded) {
-            expandedTags.classList.add('opacity-100', 'visible');
-            expandedTags.classList.remove('opacity-0', 'invisible');
-            button.setAttribute('aria-expanded', 'true');
-            button.textContent = 'Show less';
-            
-            // Close when clicking outside
-            const closeHandler = (event: MouseEvent) => {
-              if (!expandedTags.contains(event.target as Node) && !button.contains(event.target as Node)) {
-                expandedTags.classList.remove('opacity-100', 'visible');
-                expandedTags.classList.add('opacity-0', 'invisible');
-                button.setAttribute('aria-expanded', 'false');
-                button.textContent = `+${expandedTags.querySelectorAll('span').length} more`;
-                document.removeEventListener('click', closeHandler);
-              }
-            };
-            
-            setTimeout(() => {
-              document.addEventListener('click', closeHandler);
-            }, 0);
-          } else {
-            expandedTags.classList.remove('opacity-100', 'visible');
-            expandedTags.classList.add('opacity-0', 'invisible');
-            button.setAttribute('aria-expanded', 'false');
-            button.textContent = `+${expandedTags.querySelectorAll('span').length} more`;
-          }
+        if (isHidden) {
+          showTooltip();
+          button.textContent = 'Show less';
+          
+          // Close when clicking outside
+          const closeHandler = (event: MouseEvent) => {
+            if (!tooltip.contains(event.target as Node) && !button.contains(event.target as Node)) {
+              hideTooltip();
+              button.textContent = `+${tooltip.querySelectorAll('span').length} more`;
+              document.removeEventListener('click', closeHandler);
+            }
+          };
+          
+          setTimeout(() => {
+            document.addEventListener('click', closeHandler);
+          }, 0);
+        } else {
+          hideTooltip();
+          button.textContent = `+${tooltip.querySelectorAll('span').length} more`;
         }
       });
     });
