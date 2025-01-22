@@ -20,12 +20,39 @@ const urlBase = "https://api.comick.fun/chapter";
 
 let genreCache: Genre[] = [];
 
+const RETRY_COUNT = 3;
+const RETRY_DELAY = 1000;
+
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries = RETRY_COUNT): Promise<Response> {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; ComicReader/1.0)',
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
+
 export async function fetchGenres(): Promise<Genre[]> {
   if (genreCache.length > 0) return genreCache;
 
   try {
-    const response = await fetch('https://api.comick.fun/genre');
-    if (!response.ok) throw new Error(`Failed to fetch genres: ${response.status}`);
+    const response = await fetchWithRetry('https://api.comick.fun/genre');
     genreCache = await response.json();
     return genreCache;
   } catch (error) {
@@ -40,21 +67,10 @@ export function getGenreNames(genreIds: number[], genres: Genre[]): string[] {
     .filter(name => name !== '');
 }
 
-export async function fetchComics(language: string = 'en', contentType: string = 'sfw'): Promise<Comic[]> {
+export async function fetchComics(language: string = 'en', contentType: string = 'sfw', page: number = 1): Promise<Comic[]> {
   try {
-    const apiUrl = `${urlBase}?lang=${language}&page=1&order=new&accept_erotic_content=${contentType === 'nsfw'}`;
-    
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; ComicReader/1.0)',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
+    const apiUrl = `${urlBase}?lang=${language}&page=${page}&order=new&accept_erotic_content=${contentType === 'nsfw'}`;
+    const response = await fetchWithRetry(apiUrl);
     const data = await response.json();
 
     if (!Array.isArray(data)) {

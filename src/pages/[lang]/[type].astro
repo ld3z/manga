@@ -1,9 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ComicCard from '../../components/ComicCard.astro';
+import LoadingCard from '../../components/LoadingCard.astro';
 import LanguageSelector from '../../components/LanguageSelector.astro';
 import RSSLink from '../../components/RSSLink.astro';
-import { fetchComics, isValidLanguage, isValidContentType, fetchGenres } from '../../lib/api';
+import { fetchComics, isValidLanguage, isValidContentType, fetchGenres, getLanguageName } from '../../lib/api';
 import type { Comic } from '../../lib/types';
 
 export async function getStaticPaths() {
@@ -34,9 +35,12 @@ try {
   console.error('Failed to fetch comics:', e);
   error = e instanceof Error ? e.message : 'Failed to fetch comics';
 }
+
+const title = `ComicK - ${getLanguageName(lang!)} ${type!.toUpperCase()}`;
+const description = `Latest ${type!.toUpperCase()} comics in ${getLanguageName(lang!)}. Updated regularly with new chapters.`;
 ---
 
-<Layout title={`Comick - ${lang?.toUpperCase()} ${type?.toUpperCase()}`}>
+<Layout title={title} description={description}>
   <main class="mx-auto px-4 sm:px-6 lg:px-8 max-w-[1400px] text-primary">
     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-center mb-8 sm:mb-12 bg-gradient-to-r from-accent via-accent-light to-white bg-clip-text text-transparent bg-[length:400%] bg-[0%]">
       ComicK-RSS
@@ -50,20 +54,30 @@ try {
     {error && (
       <div class="bg-red-500 text-white p-4 rounded-lg mb-8">
         <p>Error: {error}</p>
+        <button 
+          class="mt-2 px-4 py-2 bg-white text-red-500 rounded hover:bg-red-50 transition-colors"
+          onclick="window.location.reload()"
+        >
+          Retry
+        </button>
       </div>
     )}
     
-    {comics.length > 0 ? (
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-        {comics.map(comic => (
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+      {comics.length > 0 ? (
+        comics.map(comic => (
           <ComicCard comic={comic} genres={genres} />
-        ))}
-      </div>
-    ) : (
-      <div class="text-center bg-secondary p-6 rounded-lg">
-        <p class="mb-4">No comics found. Please try a different language or content type.</p>
-        <p class="text-sm opacity-70">Language: {lang}, Type: {type}</p>
-      </div>
-    )}
+        ))
+      ) : !error ? (
+        Array(10).fill(null).map(() => (
+          <LoadingCard />
+        ))
+      ) : (
+        <div class="col-span-full text-center bg-secondary p-6 rounded-lg">
+          <p class="mb-4">No comics found. Please try a different language or content type.</p>
+          <p class="text-sm opacity-70">Language: {getLanguageName(lang!)}, Type: {type!.toUpperCase()}</p>
+        </div>
+      )}
+    </div>
   </main>
 </Layout>
