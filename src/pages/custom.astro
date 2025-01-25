@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SlugInput from '../components/SlugInput.astro';
+
+const title = "ComicK - Custom RSS Feed";
+const description = "Create a custom RSS feed for your favorite comics";
+---
+
+<Layout title={title} description={description}>
+  <main class="mx-auto px-4 sm:px-6 lg:px-8 max-w-[800px] py-8">
+    <h1 class="text-4xl font-bold text-center mb-8">Custom RSS Feed</h1>
+    
+    <div class="bg-secondary/50 p-6 rounded-lg shadow-lg">
+      <SlugInput />
+    </div>
+
+    <div class="mt-8 text-center text-primary/60">
+      <p>Add the comic slugs from the URLs of your favorite comics on ComicK.</p>
+      <p class="mt-2">Example: For "https://comick.io/comic/01-one-piece", the slug is "01-one-piece"</p>
+    </div>
+  </main>
+</Layout> 

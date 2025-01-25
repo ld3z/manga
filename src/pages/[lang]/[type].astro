@@ -47,7 +47,27 @@ const description = `Latest ${type!.toUpperCase()} comics in ${getLanguageName(l
     </h1>
 
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-      <LanguageSelector currentLang={lang!} currentType={type!} />
+      <div class="flex items-center gap-4">
+        <LanguageSelector currentLang={lang!} currentType={type!} />
+        <a 
+          href="/custom" 
+          class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-secondary hover:bg-accent-light rounded-md transition-colors font-medium"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            class="w-5 h-5" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"
+          >
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Custom Feed
+        </a>
+      </div>
       <RSSLink lang={lang!} type={type!} />
     </div>
     

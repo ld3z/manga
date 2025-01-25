@@ -100,3 +100,156 @@ export function getLanguageName(code: string): string {
 export const availableLanguages = Array.from(languages);
 export const availableContentTypes = Array.from(contentTypes);
 export { languageMap };
+
+interface ComicDetail {
+  comic: {
+    hid: string;
+    title: string;
+    slug: string;
+  };
+}
+
+interface ChapterDetail {
+  id: string;
+  chap: string;
+  title: string;
+  updated_at: string;
+  md_comics: {
+    title: string;
+    slug: string;
+  };
+}
+
+interface ChapterParams {
+  limit?: number;
+  lang?: string;
+}
+
+export async function getComicBySlug(slug: string): Promise<ComicDetail | null> {
+  try {
+    const response = await fetchWithRetry(`https://api.comick.fun/comic/${slug}`);
+    const data = await response.json();
+    
+    if (!data?.comic?.hid) {
+      console.error(`Invalid comic data for slug ${slug}:`, data);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error(`Error fetching comic ${slug}:`, error);
+    return null;
+  }
+}
+
+export async function getChaptersByHid(
+  hid: string,
+  slug: string,
+  params: ChapterParams = { limit: 15, lang: 'en' }
+): Promise<ChapterDetail[]> {
+  try {
+    const queryParams = new URLSearchParams({
+      limit: params.limit?.toString() || '15',
+      lang: params.lang || 'en',
+      ordering: '-created_at'
+    });
+    
+    const comicResponse = await fetchWithRetry(
+      `https://api.comick.fun/comic/${hid}`
+    );
+    const comicData = await comicResponse.json();
+    const comicTitle = comicData?.comic?.title || 'Unknown Comic';
+    
+    const response = await fetchWithRetry(
+      `https://api.comick.fun/comic/${hid}/chapters?${queryParams}`
+    );
+    const data = await response.json();
+    
+    if (!data?.chapters || !Array.isArray(data.chapters)) {
+      console.error(`Invalid chapters data for hid ${hid}:`, data);
+      return [];
+    }
+
+    console.log('Processing chapters for comic:', comicTitle);
+    
+    const chapters = data.chapters
+      .filter(chapter => {
+        const isValid = chapter && 
+               chapter.chap &&
+               chapter.hid &&
+               (chapter.publish_at || chapter.created_at || chapter.updated_at);
+        return isValid;
+      })
+      .map(chapter => ({
+        id: chapter.hid,
+        chap: chapter.chap,
+        title: chapter.title || `Chapter ${chapter.chap}`,
+        updated_at: chapter.publish_at || chapter.created_at || chapter.updated_at,
+        md_comics: {
+          title: comicTitle,
+          slug: slug
+        }
+      }));
+
+    console.log(`Successfully processed ${chapters.length} chapters for ${comicTitle}`);
+    return chapters;
+  } catch (error) {
+    console.error(`Error fetching chapters for hid ${hid}:`, error);
+    return [];
+  }
+}
+
+export async function getChaptersForSlugs(
+  slugs: string[], 
+  lang: string = 'en'
+): Promise<ChapterDetail[]> {
+  console.log(`Fetching chapters for slugs:`, slugs, `in language: ${lang}`);
+  const chapters: ChapterDetail[] = [];
+  
+  for (const slug of slugs) {
+    console.log(`Processing slug: ${slug}`);
+    const comicDetail = await getComicBySlug(slug);
+    
+    if (!comicDetail) {
+      console.error(`Failed to get comic details for slug: ${slug}`);
+      continue;
+    }
+    
+    if (!comicDetail.comic?.hid) {
+      console.error(`No HID found for slug ${slug}`, comicDetail);
+      continue;
+    }
+    
+    console.log(`Found HID ${comicDetail.comic.hid} for slug ${slug}`);
+    const comicChapters = await getChaptersByHid(
+      comicDetail.comic.hid,
+      slug,
+      {
+        limit: 15,
+        lang: lang
+      }
+    );
+    console.log(`Found ${comicChapters.length} chapters for ${slug}`);
+    
+    if (comicChapters.length > 0) {
+      chapters.push(...comicChapters);
+    }
+  }
+  
+  // Sort by chapter number (descending) first, then by date
+  const sortedChapters = chapters.sort((a, b) => {
+    // Convert chapter numbers to floats for proper numerical sorting
+    const chapA = parseFloat(a.chap);
+    const chapB = parseFloat(b.chap);
+    
+    if (chapB !== chapA) {
+      return chapB - chapA; // Sort by chapter number first
+    }
+    
+    // If chapters are the same, sort by date
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
+  
+  console.log(`Total chapters found: ${sortedChapters.length}`);
+  return sortedChapters;
+}

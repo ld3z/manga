@@ -1,0 +1,163 @@
+---
+interface Props {
+  currentSlugs?: string[];
+}
+
+const { currentSlugs = [] } = Astro.props;
+
+import { availableLanguages, languageMap } from '../lib/api';
+---
+
+<div class="space-y-4">
+  <div class="flex flex-col space-y-2">
+    <label for="slug-input" class="text-sm font-medium text-primary">
+      Add Comic Slug
+      <span class="text-primary/60">(e.g., "01-one-piece" from https://comick.io/comic/01-one-piece)</span>
+    </label>
+    <div class="flex gap-2">
+      <input
+        type="text"
+        id="slug-input"
+        placeholder="Enter comic slug..."
+        class="flex-1 px-4 py-2 rounded-md bg-secondary text-primary border border-hover focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+      />
+      <button
+        id="add-slug"
+        class="px-4 py-2 bg-accent text-secondary hover:bg-accent-light rounded-md transition-colors font-medium"
+      >
+        Add
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col space-y-2">
+    <label for="lang-select" class="text-sm font-medium text-primary">
+      Select Language
+    </label>
+    <select
+      id="lang-select"
+      class="px-4 py-2 rounded-md bg-secondary text-primary border border-hover focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+    >
+      {availableLanguages.map(lang => (
+        <option value={lang}>
+          {languageMap[lang as keyof typeof languageMap]}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <div id="slug-list" class="space-y-2">
+    {currentSlugs.map(slug => (
+      <div class="flex items-center justify-between px-4 py-2 bg-secondary rounded-md group" data-slug={slug}>
+        <span class="text-primary">{slug}</span>
+        <button 
+          class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          data-remove={slug}
+        >
+          Remove
+        </button>
+      </div>
+    ))}
+  </div>
+
+  <div class="pt-4">
+    <a
+      id="generate-rss"
+      href="#"
+      class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-secondary hover:bg-accent-light rounded-md transition-colors font-medium"
+    >
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        class="w-5 h-5" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+      >
+        <path d="M4 11a9 9 0 0 1 9 9"></path>
+        <path d="M4 4a16 16 0 0 1 16 16"></path>
+        <circle cx="5" cy="19" r="1"></circle>
+      </svg>
+      Generate RSS Feed
+    </a>
+  </div>
+</div>
+
+<script>
+  const slugInput = document.getElementById('slug-input') as HTMLInputElement;
+  const addButton = document.getElementById('add-slug');
+  const slugList = document.getElementById('slug-list');
+  const generateRSSLink = document.getElementById('generate-rss');
+  const langSelect = document.getElementById('lang-select') as HTMLSelectElement;
+
+  // Load saved slugs from localStorage
+  let slugs = new Set(JSON.parse(localStorage.getItem('comic-slugs') || '[]'));
+  
+  function updateSlugs() {
+    localStorage.setItem('comic-slugs', JSON.stringify([...slugs]));
+    updateRSSLink();
+  }
+
+  function updateRSSLink() {
+    const slugString = [...slugs].join(',');
+    const lang = langSelect?.value || 'en';
+    generateRSSLink!.setAttribute('href', `/rss/custom/${slugString}.xml?lang=${lang}`);
+  }
+
+  function renderSlugList() {
+    if (!slugList) return;
+    
+    slugList.innerHTML = '';
+    [...slugs].forEach(slug => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between px-4 py-2 bg-secondary rounded-md group';
+      div.dataset.slug = slug;
+      div.innerHTML = `
+        <span class="text-primary">${slug}</span>
+        <button 
+          class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          data-remove="${slug}"
+        >
+          Remove
+        </button>
+      `;
+      slugList.appendChild(div);
+    });
+  }
+
+  function addSlug(slug: string) {
+    const sanitizedSlug = slug.trim().toLowerCase();
+    if (sanitizedSlug && !slugs.has(sanitizedSlug)) {
+      slugs.add(sanitizedSlug);
+      updateSlugs();
+      renderSlugList();
+    }
+    slugInput.value = '';
+  }
+
+  addButton?.addEventListener('click', () => addSlug(slugInput.value));
+  
+  slugInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      addSlug(slugInput.value);
+    }
+  });
+
+  slugList?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const slug = target.dataset.remove;
+    if (slug) {
+      slugs.delete(slug);
+      updateSlugs();
+      renderSlugList();
+    }
+  });
+
+  langSelect?.addEventListener('change', updateRSSLink);
+
+  // Initialize RSS link and render initial list
+  updateRSSLink();
+  renderSlugList();
+</script> 
