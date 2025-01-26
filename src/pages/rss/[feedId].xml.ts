@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response("Feed ID not provided", { status: 400 });
   }
 
-  const mapping = getFeedMapping(feedId);
+  const mapping = await getFeedMapping(feedId);
   
   if (!mapping) {
     return new Response("Feed not found", { status: 404 });

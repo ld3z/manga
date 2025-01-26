@@ -17,8 +17,8 @@ export const POST: APIRoute = async ({ request }) => {
     const dataString = `${slugs.sort().join(',')}:${lang}`;
     const hash = createHash('md5').update(dataString).digest('hex').slice(0, 8);
 
-    // Store the mapping in the database
-    storeFeedMapping(hash, slugs, lang);
+    // Store the mapping in Vercel KV
+    await storeFeedMapping(hash, slugs, lang);
 
     return new Response(JSON.stringify({ feedId: hash }), {
       status: 200,
@@ -27,7 +27,8 @@ export const POST: APIRoute = async ({ request }) => {
       }
     });
   } catch (error) {
-    return new Response("Invalid request", { status: 400 });
+    console.error('Error creating feed:', error);
+    return new Response("Internal server error", { status: 500 });
   }
 };
 
