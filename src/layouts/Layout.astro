@@ -1,6 +1,6 @@
 ---
 import ThemeToggle from '../components/ThemeToggle.astro';
-import { Analytics } from '@vercel/analytics/react';
+import { inject } from '@vercel/analytics';
 
 interface Props {
   title: string;
@@ -11,6 +11,9 @@ const {
   title,
   description = "Discover and track your favorite comics with ComicK-RSS" 
 } = Astro.props;
+
+// Initialize analytics
+inject();
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-rss.vercel.app').toString();
 const isCreditsPage = Astro.url.pathname === '/credits';
@@ -102,7 +105,6 @@ const isCreditsPage = Astro.url.pathname === '/credits';
     <main id="main-content" class="transition-opacity duration-300">
       <slot />
     </main>
-    <Analytics />
   </body>
 </html>
 
