@@ -103,7 +103,25 @@ import { availableLanguages, languageMap } from '../lib/api';
   function updateRSSLink() {
     const slugString = [...slugs].join(',');
     const lang = langSelect?.value || 'en';
-    generateRSSLink!.setAttribute('href', `/rss/custom/${slugString}.xml?lang=${lang}`);
+    
+    // Call the API to get a short feed ID
+    fetch('/api/create-feed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        slugs: [...slugs],
+        lang
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      generateRSSLink!.setAttribute('href', `/rss/${data.feedId}.xml`);
+    })
+    .catch(error => {
+      console.error('Error generating short URL:', error);
+    });
   }
 
   function renderSlugList() {

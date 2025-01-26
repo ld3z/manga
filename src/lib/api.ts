@@ -117,6 +117,9 @@ interface ChapterDetail {
   md_comics: {
     title: string;
     slug: string;
+    md_covers?: {
+      b2key: string;
+    }[];
   };
 }
 
@@ -154,11 +157,13 @@ export async function getChaptersByHid(
       ordering: '-created_at'
     });
     
+    // Fetch comic details including cover
     const comicResponse = await fetchWithRetry(
       `https://api.comick.fun/comic/${hid}`
     );
     const comicData = await comicResponse.json();
     const comicTitle = comicData?.comic?.title || 'Unknown Comic';
+    const covers = comicData?.comic?.md_covers || [];
     
     const response = await fetchWithRetry(
       `https://api.comick.fun/comic/${hid}/chapters?${queryParams}`
@@ -187,7 +192,8 @@ export async function getChaptersByHid(
         updated_at: chapter.publish_at || chapter.created_at || chapter.updated_at,
         md_comics: {
           title: comicTitle,
-          slug: slug
+          slug: slug,
+          md_covers: covers // Add covers to the response
         }
       }));
 
