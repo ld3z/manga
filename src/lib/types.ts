@@ -9,6 +9,7 @@ export interface Comic {
     md_covers: {
       b2key: string;
     }[];
+    content_rating: string;
   };
 }
 
