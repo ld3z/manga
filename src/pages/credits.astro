@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { backgrounds } from '../config/backgrounds';
 
 const title = "ComicK-RSS - Credits";
 const description = "Credits and attributions for ComicK-RSS";
@@ -7,24 +8,13 @@ const description = "Credits and attributions for ComicK-RSS";
 const credits = [
   {
     title: "Background Art",
-    items: [
-      {
-        name: "Citlali (Genshin Impact)",
-        artist: "ryrmcher",
-        link: "https://danbooru.donmai.us/posts/6148600",
-        description: "Beautiful artwork used as the site background",
-        socials: [
-          {
-            name: "Twitter Post",
-            link: "https://x.com/ryrmcher/status/1878812100866560258"
-          },
-          {
-            name: "Artist's Twitter",
-            link: "https://x.com/ryrmcher"
-          }
-        ]
-      }
-    ]
+    items: backgrounds.map(bg => ({
+      name: bg.title,
+      artist: bg.artist,
+      link: bg.source,
+      description: "Beautiful artwork used as site background",
+      socials: bg.socials
+    }))
   },
   {
     title: "Technologies",

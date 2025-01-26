@@ -1,6 +1,7 @@
 ---
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Analytics from '@vercel/analytics/astro';
+import { getRandomBackground } from '../config/backgrounds';
 
 interface Props {
   title: string;
@@ -12,6 +13,7 @@ const {
   description = "Discover and track your favorite comics with ComicK-RSS" 
 } = Astro.props;
 
+const background = getRandomBackground();
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-rss.vercel.app').toString();
 const isCreditsPage = Astro.url.pathname === '/credits';
 ---
@@ -43,7 +45,11 @@ const isCreditsPage = Astro.url.pathname === '/credits';
     
     <meta name="generator" content={Astro.generator} />
   </head>
-  <body class="min-h-screen bg-primary text-primary before:fixed before:inset-0 before:bg-[url('https://cdn.donmai.us/original/97/c8/__citlali_genshin_impact_drawn_by_ryrmcher__97c810ff6e992f1789f93e2edbb683a3.jpg')] before:bg-cover before:bg-center before:bg-no-repeat before:opacity-30 before:-z-10 before:transition-all before:duration-300" id="body-element">
+  <body 
+    class={`min-h-screen bg-primary text-primary before:fixed before:inset-0 before:bg-[url('${background.url}')] before:bg-cover before:bg-center before:bg-no-repeat before:opacity-30 before:-z-10 before:transition-all before:duration-300`} 
+    id="body-element"
+    style={`--bg-url: url('${background.url}')`}
+  >
     {!isCreditsPage && (
       <div class="fixed top-4 right-4 z-50">
         <div class="relative" id="settings-dropdown">
@@ -248,5 +254,11 @@ const isCreditsPage = Astro.url.pathname === '/credits';
 
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>
+
+<style define:vars={{ bgUrl: background.url }}>
+  body::before {
+    background-image: var(--bg-url);
   }
 </style>
