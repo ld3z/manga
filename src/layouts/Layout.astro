@@ -12,6 +12,7 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-rss.vercel.app').toString();
+const isCreditsPage = Astro.url.pathname === '/credits';
 ---
 
 <!doctype html>
@@ -41,11 +42,132 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-r
     
     <meta name="generator" content={Astro.generator} />
   </head>
-  <body class="min-h-screen bg-primary text-primary">
-    <ThemeToggle />
-    <slot />
+  <body class="min-h-screen bg-primary text-primary before:fixed before:inset-0 before:bg-[url('https://cdn.donmai.us/original/97/c8/__citlali_genshin_impact_drawn_by_ryrmcher__97c810ff6e992f1789f93e2edbb683a3.jpg')] before:bg-cover before:bg-center before:bg-no-repeat before:opacity-30 before:-z-10 before:transition-all before:duration-300" id="body-element">
+    {!isCreditsPage && (
+      <div class="fixed top-4 right-4 z-50">
+        <div class="relative" id="settings-dropdown">
+          <button
+            id="settings-button"
+            class="p-2 bg-secondary/80 backdrop-blur rounded-lg hover:bg-hover transition-colors shadow-lg border border-hover/30 flex items-center gap-2"
+            aria-label="Settings"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+            </svg>
+            <span class="text-sm">Settings</span>
+          </button>
+
+          <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-64 bg-secondary/95 backdrop-blur rounded-lg shadow-lg border border-hover/30">
+            <div class="p-4 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm">Theme</span>
+                <button 
+                  id="theme-toggle" 
+                  class="relative w-12 h-6 rounded-full bg-hover transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  <span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-primary transition-transform duration-200"></span>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-sm">Content Visibility</span>
+                <button 
+                  id="toggle-content" 
+                  class="relative w-12 h-6 rounded-full bg-hover transition-colors"
+                  aria-label="Toggle content visibility"
+                >
+                  <span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-primary transition-transform duration-200"></span>
+                </button>
+              </div>
+
+              <div class="border-t border-hover/30 pt-4">
+                <a 
+                  href="/credits"
+                  class="flex items-center gap-2 text-sm hover:text-accent transition-colors"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                  Credits
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    <main id="main-content" class="transition-opacity duration-300">
+      <slot />
+    </main>
   </body>
 </html>
+
+<script>
+  const settingsButton = document.getElementById('settings-button');
+  const dropdownMenu = document.getElementById('dropdown-menu');
+  const themeToggle = document.getElementById('theme-toggle');
+  const toggleContent = document.getElementById('toggle-content');
+  const mainContent = document.getElementById('main-content');
+  const bodyElement = document.getElementById('body-element');
+
+  // Theme toggle functionality
+  const updateThemeToggle = (theme: string) => {
+    const toggleButton = themeToggle?.querySelector('span');
+    if (toggleButton) {
+      toggleButton.style.transform = theme === 'dark' ? 'translateX(24px)' : 'translateX(0)';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  };
+
+  // Content visibility functionality
+  let isVisible = true;
+  const updateContentVisibility = () => {
+    const toggleButton = toggleContent?.querySelector('span');
+    if (toggleButton) {
+      toggleButton.style.transform = isVisible ? 'translateX(0)' : 'translateX(24px)';
+    }
+    if (mainContent) {
+      mainContent.style.opacity = isVisible ? '1' : '0';
+      mainContent.style.pointerEvents = isVisible ? 'auto' : 'none';
+    }
+    if (bodyElement) {
+      bodyElement.style.setProperty('--tw-blur', isVisible ? 'blur(2px)' : 'blur(0)');
+      bodyElement.style.setProperty('--tw-bg-opacity', isVisible ? '0.3' : '1');
+    }
+  };
+
+  // Initialize theme
+  const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+  updateThemeToggle(initialTheme);
+
+  // Event listeners
+  settingsButton?.addEventListener('click', () => {
+    dropdownMenu?.classList.toggle('hidden');
+  });
+
+  themeToggle?.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    updateThemeToggle(newTheme);
+  });
+
+  toggleContent?.addEventListener('click', () => {
+    isVisible = !isVisible;
+    updateContentVisibility();
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!settingsButton?.contains(e.target as Node) && !dropdownMenu?.contains(e.target as Node)) {
+      dropdownMenu?.classList.add('hidden');
+    }
+  });
+</script>
 
 <style is:global>
   :root {
