@@ -1,4 +1,4 @@
-import type { Comic, Genre } from './types';
+import type { Comic, Genre, ComicType } from './types';
 
 const languageMap = {
   "en": "English",
@@ -16,6 +16,7 @@ const languageMap = {
 
 const languages = new Set(Object.keys(languageMap));
 const contentTypes = new Set(["sfw", "nsfw"]);
+const comicTypes = new Set(['manga', 'manhwa', 'manhua', 'all']);
 const urlBase = "https://api.comick.fun/chapter";
 
 let genreCache: Genre[] = [];
@@ -67,9 +68,18 @@ export function getGenreNames(genreIds: number[], genres: Genre[]): string[] {
     .filter(name => name !== '');
 }
 
-export async function fetchComics(language: string = 'en', contentType: string = 'sfw', page: number = 1): Promise<Comic[]> {
+export async function fetchComics(
+  language: string = 'en', 
+  contentType: string = 'sfw', 
+  comicType: ComicType = 'all',
+  page: number = 1
+): Promise<Comic[]> {
   try {
-    const apiUrl = `${urlBase}?lang=${language}&page=${page}&order=new&accept_erotic_content=${contentType === 'nsfw'}`;
+    const typeParam = comicType === 'all' ? '' : `&type=${comicType}`;
+    const apiUrl = `${urlBase}?lang=${language}&page=${page}&order=new&accept_erotic_content=${contentType === 'nsfw'}${typeParam}`;
+    
+    console.log('Fetching comics from:', apiUrl);
+    
     const response = await fetchWithRetry(apiUrl);
     const data = await response.json();
 
@@ -93,12 +103,17 @@ export function isValidContentType(type: string): boolean {
   return contentTypes.has(type);
 }
 
+export function isValidComicType(type: string): boolean {
+  return comicTypes.has(type);
+}
+
 export function getLanguageName(code: string): string {
   return languageMap[code as keyof typeof languageMap] || code.toUpperCase();
 }
 
 export const availableLanguages = Array.from(languages);
 export const availableContentTypes = Array.from(contentTypes);
+export const availableComicTypes = Array.from(comicTypes);
 export { languageMap };
 
 interface ComicDetail {

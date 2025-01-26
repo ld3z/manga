@@ -10,6 +10,7 @@ export interface Comic {
       b2key: string;
     }[];
     content_rating: string;
+    comic_type: string;
   };
 }
 
@@ -22,3 +23,5 @@ export interface FeedMapping {
   slugs: string[];
   lang: string;
 }
+
+export type ComicType = 'manga' | 'manhwa' | 'manhua' | 'all';

@@ -1,50 +1,34 @@
 ---
-import { availableLanguages, availableContentTypes, getLanguageName } from '../lib/api';
+import { availableLanguages, languageMap } from '../lib/api';
 
 interface Props {
   currentLang: string;
   currentType: string;
+  contentType: string;
 }
 
-const { currentLang, currentType } = Astro.props;
+const { currentLang, currentType, contentType } = Astro.props;
 ---
 
-<div class="flex flex-wrap gap-4">
-  <select 
-    name="language" 
-    id="language"
-    class="px-4 py-2 rounded-md bg-secondary text-primary border border-hover focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
+<div class="relative inline-block">
+  <select
+    class="appearance-none bg-secondary text-primary px-4 py-2 pr-8 rounded-lg cursor-pointer hover:bg-hover transition-colors"
+    onchange="window.location.href=this.value"
   >
-    {availableLanguages.map(lang => (
-      <option value={lang} selected={lang === currentLang}>
-        {getLanguageName(lang)}
-      </option>
-    ))}
+    {
+      availableLanguages.map((lang) => (
+        <option
+          value={`/${lang}/${contentType}/${currentType}`}
+          selected={lang === currentLang}
+        >
+          {languageMap[lang as keyof typeof languageMap]}
+        </option>
+      ))
+    }
   </select>
-
-  <select 
-    name="contentType" 
-    id="contentType"
-    class="px-4 py-2 rounded-md bg-secondary text-primary border border-hover focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors"
-  >
-    {availableContentTypes.map(type => (
-      <option value={type} selected={type === currentType}>
-        {type.toUpperCase()}
-      </option>
-    ))}
-  </select>
+  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-primary">
+    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+    </svg>
+  </div>
 </div>
-
-<script>
-  const langSelect = document.getElementById('language') as HTMLSelectElement;
-  const typeSelect = document.getElementById('contentType') as HTMLSelectElement;
-
-  function updateURL() {
-    const lang = langSelect.value;
-    const type = typeSelect.value;
-    window.location.href = `/${lang}/${type}`;
-  }
-
-  langSelect.addEventListener('change', updateURL);
-  typeSelect.addEventListener('change', updateURL);
-</script>

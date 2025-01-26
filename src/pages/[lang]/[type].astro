@@ -7,6 +7,11 @@ import RSSLink from '../../components/RSSLink.astro';
 import { fetchComics, isValidLanguage, isValidContentType, fetchGenres, getLanguageName } from '../../lib/api';
 import type { Comic } from '../../lib/types';
 
+export const prerender = false;
+
+// Redirect old URLs to new structure
+return Astro.redirect(`/${Astro.params.lang}/${Astro.params.type}/all`);
+
 export async function getStaticPaths() {
   const languages = ['en', 'fr', 'es', 'it', 'pl', 'tr', 'ja', 'zh', 'sv'];
   const types = ['sfw', 'nsfw'];
