@@ -11,7 +11,8 @@ const languageMap = {
   "zh": "Chinese",
   "sv": "Swedish",
   "ar": "Arabic",
-  "de": "German"
+  "de": "German",
+  "ko": "Korean"
 } as const;
 
 const languages = new Set(Object.keys(languageMap));
