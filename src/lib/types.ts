@@ -16,3 +16,8 @@ export interface Genre {
   id: number;
   name: string;
 }
+
+export interface FeedMapping {
+  slugs: string[];
+  lang: string;
+}

@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createHash } from 'crypto';
+import { storeFeedMapping } from '../../lib/db';
 
 // In-memory storage (replace with database in production)
 const feedMappings = new Map<string, { slugs: string[], lang: string }>();
@@ -16,8 +17,8 @@ export const POST: APIRoute = async ({ request }) => {
     const dataString = `${slugs.sort().join(',')}:${lang}`;
     const hash = createHash('md5').update(dataString).digest('hex').slice(0, 8);
 
-    // Store the mapping
-    feedMappings.set(hash, { slugs, lang });
+    // Store the mapping in the database
+    storeFeedMapping(hash, slugs, lang);
 
     return new Response(JSON.stringify({ feedId: hash }), {
       status: 200,

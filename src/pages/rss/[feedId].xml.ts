@@ -1,16 +1,22 @@
 import rss from "@astrojs/rss";
 import { getChaptersForSlugs, isValidLanguage } from "../../lib/api";
+import { getFeedMapping } from "../../lib/db";
 import type { APIRoute } from "astro";
-import { feedMappings } from "../api/create-feed";
 
 export const GET: APIRoute = async ({ params }) => {
   const feedId = params.feedId?.replace('.xml', '');
   
-  if (!feedId || !feedMappings.has(feedId)) {
+  if (!feedId) {
+    return new Response("Feed ID not provided", { status: 400 });
+  }
+
+  const mapping = getFeedMapping(feedId);
+  
+  if (!mapping) {
     return new Response("Feed not found", { status: 404 });
   }
 
-  const { slugs, lang } = feedMappings.get(feedId)!;
+  const { slugs, lang } = mapping;
 
   if (!isValidLanguage(lang)) {
     return new Response("Invalid language", { status: 400 });
