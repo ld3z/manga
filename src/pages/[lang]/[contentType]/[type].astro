@@ -44,8 +44,8 @@ const title = `ComicK - ${getLanguageName(lang!)} ${contentType?.toUpperCase()} 
               href={`/${lang}/sfw/${type}`}
               class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 contentType === 'sfw'
-                  ? 'bg-accent text-white'
-                  : 'bg-secondary text-primary/80 hover:bg-hover'
+                  ? 'bg-[rgb(var(--accent-bg))] text-[rgb(var(--accent-text))]'
+                  : 'bg-secondary text-primary hover:bg-hover'
               }`}
             >
               SFW
@@ -54,8 +54,8 @@ const title = `ComicK - ${getLanguageName(lang!)} ${contentType?.toUpperCase()} 
               href={`/${lang}/nsfw/${type}`}
               class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 contentType === 'nsfw'
-                  ? 'bg-accent text-white'
-                  : 'bg-secondary text-primary/80 hover:bg-hover'
+                  ? 'bg-[rgb(var(--accent-bg))] text-[rgb(var(--accent-text))]'
+                  : 'bg-secondary text-primary hover:bg-hover'
               }`}
             >
               NSFW

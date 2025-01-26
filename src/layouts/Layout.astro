@@ -66,6 +66,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-r
     --bg-secondary: #f0f0f0;
     --bg-hover: #e0e0e0;
     --text-color: #13151a;
+    --accent: 89, 0, 255;        /* Brighter, more saturated purple */
+    --accent-light: 124, 58, 237;
+    --accent-dark: 76, 29, 149;
+    --accent-bg: 89, 0, 255;     /* Same as accent for bg */
+    --accent-text: 255, 255, 255; /* White text for contrast */
   }
 
   /* Dark theme */
@@ -74,6 +79,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-r
     --bg-secondary: #23262d;
     --bg-hover: #2a2d35;
     --text-color: #ffffff;
+    --accent: 136, 58, 234;
+    --accent-light: 224, 204, 250;
+    --accent-dark: 49, 10, 101;
+    --accent-bg: 136, 58, 234;    /* Same as accent for bg */
+    --accent-text: 255, 255, 255; /* White text for contrast */
   }
 
   /* Default to dark theme if no data-theme is set */
@@ -82,6 +92,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://comick-r
     --bg-secondary: #23262d;
     --bg-hover: #2a2d35;
     --text-color: #ffffff;
+    --accent: 136, 58, 234;
+    --accent-light: 224, 204, 250;
+    --accent-dark: 49, 10, 101;
+    --accent-bg: 136, 58, 234;
+    --accent-text: 255, 255, 255;
   }
 
   html {

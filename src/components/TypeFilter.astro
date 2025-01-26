@@ -21,8 +21,8 @@ const types = [
       href={`/${lang}/${contentType}/${type.id}`}
       class={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
         currentType === type.id
-          ? 'bg-accent text-white'
-          : 'bg-secondary text-primary/80 hover:bg-hover'
+          ? 'bg-[rgb(var(--accent-bg))] text-[rgb(var(--accent-text))]'
+          : 'bg-secondary text-primary hover:bg-hover'
       }`}
     >
       {type.label}
