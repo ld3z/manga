@@ -177,13 +177,29 @@ export async function getChaptersByHid(
 
     console.log('Processing chapters for comic:', comicTitle);
     
+    const now = new Date();
+    
     const chapters = data.chapters
       .filter(chapter => {
+        // Basic validation
         const isValid = chapter && 
                chapter.chap &&
-               chapter.hid &&
-               (chapter.publish_at || chapter.created_at || chapter.updated_at);
-        return isValid;
+               chapter.hid;
+
+        if (!isValid) return false;
+
+        // Check publish time
+        if (chapter.publish_at) {
+          const publishTime = new Date(chapter.publish_at);
+          if (publishTime > now) {
+            console.log(`Chapter ${chapter.chap} will be published at ${publishTime}`);
+            return false;
+          }
+        }
+
+        // Use the earliest available timestamp
+        const hasValidTimestamp = chapter.publish_at || chapter.created_at || chapter.updated_at;
+        return Boolean(hasValidTimestamp);
       })
       .map(chapter => ({
         id: chapter.hid,
@@ -193,7 +209,7 @@ export async function getChaptersByHid(
         md_comics: {
           title: comicTitle,
           slug: slug,
-          md_covers: covers // Add covers to the response
+          md_covers: covers
         }
       }));
 
