@@ -41,7 +41,7 @@ export const backgrounds: BackgroundImage[] = [
   {
     url: "https://cdn.donmai.us/original/08/c3/__patchouli_knowledge_touhou_drawn_by_kame_kamepan44231__08c3d75d5ee4a046b2a0f2415f0add5a.jpg",
     title: "読書",
-    artist: "かめぱすた",
+    artist: "kamepan44231 - かめぱすた",
     source: "https://danbooru.donmai.us/posts/8743208?",
     socials: [
       {
