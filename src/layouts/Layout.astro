@@ -1,5 +1,6 @@
 ---
 import ThemeToggle from '../components/ThemeToggle.astro';
+import { Analytics } from '@vercel/analytics/react';
 
 interface Props {
   title: string;
@@ -101,6 +102,7 @@ const isCreditsPage = Astro.url.pathname === '/credits';
     <main id="main-content" class="transition-opacity duration-300">
       <slot />
     </main>
+    <Analytics />
   </body>
 </html>
 
