@@ -125,8 +125,8 @@ const languages = [
 
     const promises = [...slugs].map(async (slug) => {
       try {
-        // Updated API endpoint to match ComicK's current structure
-        const response = await fetch(`https://api.comick.fun/comic/${encodeURIComponent(slug)}`);
+        // Use our API endpoint instead of direct ComicK API call
+        const response = await fetch(`/api/comic/${encodeURIComponent(slug)}`);
         if (!response.ok) throw new Error('Comic not found');
         
         const data = await response.json();
