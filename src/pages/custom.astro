@@ -7,14 +7,14 @@ const description = "Create a custom RSS feed for your favorite comics";
 ---
 
 <Layout title={title} description={description}>
-  <main class="mx-auto px-4 sm:px-6 lg:px-8 max-w-[800px] py-8">
-    <h1 class="text-4xl font-bold text-center mb-8">Custom RSS Feed</h1>
+  <main class="mx-auto px-3 sm:px-4 lg:px-8 max-w-[800px] py-4 sm:py-8">
+    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-4 sm:mb-8">Custom RSS Feed</h1>
     
-    <div class="bg-secondary/50 p-6 rounded-lg shadow-lg">
+    <div class="bg-secondary/50 p-3 sm:p-6 rounded-lg shadow-lg">
       <SlugInput />
     </div>
 
-    <div class="mt-8 text-center text-primary/60">
+    <div class="mt-4 sm:mt-8 text-center text-primary/60 text-sm sm:text-base">
       <p>Search for your favorite comics using the search box above, or add their slugs manually.</p>
       <p class="mt-2">Manual example: For <a href="https://comick.io/comic/01-one-piece" class="text-accent hover:underline">https://comick.io/comic/01-one-piece</a>, the slug is "01-one-piece"</p>
     </div>
