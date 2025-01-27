@@ -11,7 +11,7 @@ interface BackgroundImage {
 
 export const backgrounds: BackgroundImage[] = [
   {
-    url: "https://cdn.donmai.us/original/97/c8/__citlali_genshin_impact_drawn_by_ryrmcher__97c810ff6e992f1789f93e2edbb683a3.jpg",
+    url: '/citali.webp',
     title: "Citlali (Genshin Impact)",
     artist: "ryrmcher",
     source: "https://danbooru.donmai.us/posts/6148600",
@@ -27,7 +27,7 @@ export const backgrounds: BackgroundImage[] = [
     ],
   },
   {
-    url: "https://cdn.donmai.us/original/b9/f3/__original_drawn_by_ayanagi0319__b9f35c4a2460a2b9b3755a254f32624a.png",
+    url: "/patchouli.webp",
     title: "ひとりぼっちのあさ",
     artist: "ayanagi0319",
     source: "https://danbooru.donmai.us/posts/6900673",
@@ -39,7 +39,7 @@ export const backgrounds: BackgroundImage[] = [
     ],
   },
   {
-    url: "https://cdn.donmai.us/original/08/c3/__patchouli_knowledge_touhou_drawn_by_kame_kamepan44231__08c3d75d5ee4a046b2a0f2415f0add5a.jpg",
+    url: "/original.webp",
     title: "読書",
     artist: "kamepan44231 - かめぱすた",
     source: "https://danbooru.donmai.us/posts/8743208?",
