@@ -17,7 +17,10 @@ const coverUrl = comic.md_comics.md_covers[0]
 const isNSFW = comic.md_comics.content_rating === 'erotica';
 ---
 
-<div class="bg-secondary rounded-xl overflow-hidden shadow-lg h-full flex flex-col max-w-[280px] mx-auto border border-hover/30 hover:border-accent/50 transition-all duration-300">
+<div 
+  class="bg-secondary rounded-xl overflow-hidden shadow-lg h-full flex flex-col max-w-[280px] mx-auto border border-hover/30 hover:border-accent/50 transition-all duration-300"
+  data-genres={JSON.stringify(comic.md_comics.genres)}
+>
   <a href={`https://comick.io/comic/${comic.md_comics.slug}`} class="flex flex-col h-full group relative">
     <div class="relative overflow-hidden aspect-[2/3] rounded-t-xl">
       {!isAvif ? (
@@ -220,4 +223,23 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
       setInterval(() => updateTimer(timer), 1000);
     });
   });
+
+  function filterComics() {
+    const excludedGenres = new Set(JSON.parse(localStorage.getItem('excluded-genres') || '[]'));
+    
+    document.querySelectorAll('[data-genres]').forEach(card => {
+      const cardGenres = JSON.parse((card as HTMLElement).dataset.genres || '[]');
+      const shouldHide = cardGenres.some((genreId: number) => excludedGenres.has(genreId));
+      
+      card.classList.toggle('hidden', shouldHide);
+    });
+  }
+
+  // Listen for genre updates
+  window.addEventListener('genresUpdated', () => {
+    filterComics();
+  });
+
+  // Initial filter
+  filterComics();
 </script>

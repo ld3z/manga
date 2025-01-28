@@ -5,6 +5,7 @@ import LoadingCard from '../../../components/LoadingCard.astro';
 import RSSLink from '../../../components/RSSLink.astro';
 import TypeFilter from '../../../components/TypeFilter.astro';
 import LanguageSelector from '../../../components/LanguageSelector.astro';
+import GenreFilter from '../../../components/GenreFilter.astro';
 import { fetchComics, fetchGenres, isValidLanguage, isValidContentType, isValidComicType, getLanguageName } from '../../../lib/api';
 import type { Comic, Genre } from '../../../lib/types';
 
@@ -39,6 +40,7 @@ const title = `ComicK - ${getLanguageName(lang!)} ${contentType?.toUpperCase()} 
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex items-center gap-4">
           <LanguageSelector currentLang={lang!} currentType={type!} contentType={contentType!} />
+          <GenreFilter />
           <div class="flex gap-2">
             <a
               href={`/${lang}/sfw/${type}`}
