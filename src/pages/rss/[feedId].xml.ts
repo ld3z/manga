@@ -1,4 +1,4 @@
-import rss from "@astrojs/rss";
+import { Feed } from 'feed';
 import { getChaptersForSlugs, isValidLanguage } from "../../lib/api";
 import { getFeedMapping } from "../../lib/db";
 import type { APIRoute } from "astro";
@@ -28,14 +28,21 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response("No chapters found for the provided comics", { status: 404 });
   }
 
-  return rss({
+  const feed = new Feed({
     title: `ComicK - Custom Feed (${lang.toUpperCase()})`,
     description: `Custom RSS feed for selected comics: ${slugs.join(', ')}`,
-    site: "https://github.com/ld3z/manga-rss",
-    items: chapters.map((chapter) => ({
+    id: "https://github.com/ld3z/manga-rss",
+    link: "https://github.com/ld3z/manga-rss",
+    language: lang,
+    copyright: "All rights reserved",
+    updated: new Date(),
+  });
+
+  chapters.forEach((chapter) => {
+    feed.addItem({
       title: `${chapter.md_comics.title} - Chapter ${chapter.chap}`,
+      id: `${chapter.md_comics.slug}-${chapter.chap}`,
       link: `https://comick.io/comic/${chapter.md_comics.slug}`,
-      pubDate: new Date(chapter.updated_at),
       description: `
         <div>
           ${
@@ -47,6 +54,13 @@ export const GET: APIRoute = async ({ params }) => {
           <p>New chapter available: Chapter ${chapter.chap}</p>
         </div>
       `,
-    })),
+      date: new Date(chapter.updated_at),
+    });
+  });
+
+  return new Response(feed.rss2(), {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+    },
   });
 }; 
