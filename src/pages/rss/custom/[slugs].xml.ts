@@ -36,13 +36,14 @@ export const GET: APIRoute = async ({ params, url }) => {
     language: lang,
     copyright: "All rights reserved",
     updated: new Date(),
+    generator: 'ComicK RSS Generator',
   });
 
   chapters.forEach((chapter) => {
     const chapterUrl = `https://comick.io/comic/${chapter.md_comics.slug}`;
     feed.addItem({
       title: `${chapter.md_comics.title} - Chapter ${chapter.chap}`,
-      id: `urn:comick:${chapter.md_comics.slug}:${chapter.chap}`,
+      id: `${chapter.md_comics.slug}-${chapter.chap}`,
       link: chapterUrl,
       description: `New chapter available: Chapter ${chapter.chap}`,
       date: new Date(chapter.updated_at),
