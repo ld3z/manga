@@ -147,11 +147,12 @@ const isCreditsPage = Astro.url.pathname === '/credits';
     }
   };
 
-  // Initialize theme
-  const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-  updateThemeToggle(initialTheme);
+  // Add theme initialization to prevent flash of wrong theme
+  const themeScript = `
+    const theme = localStorage.getItem('theme') ?? 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  `;
 
   // Event listeners
   settingsButton?.addEventListener('click', () => {

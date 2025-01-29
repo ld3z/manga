@@ -20,6 +20,8 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
 <div 
   class="bg-secondary rounded-xl overflow-hidden shadow-lg h-full flex flex-col max-w-[280px] mx-auto border border-hover/30 hover:border-accent/50 transition-all duration-300"
   data-genres={JSON.stringify(comic.md_comics.genres)}
+  role="article"
+  aria-labelledby={`comic-title-${comic.id}`}
 >
   <a href={`https://comick.io/comic/${comic.md_comics.slug}`} class="flex flex-col h-full group relative">
     <div class="relative overflow-hidden aspect-[2/3] rounded-t-xl">
@@ -50,7 +52,7 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
     
     <div class="p-3 sm:p-4 md:p-5 flex-grow flex flex-col bg-secondary relative rounded-b-xl">
       <div class="absolute -top-6 sm:-top-8 left-2 right-2 sm:left-3 sm:right-3 bg-secondary/95 backdrop-blur-[12px] p-2 sm:p-3 rounded-lg shadow-lg border border-hover/30">
-        <h3 class="text-base sm:text-lg font-bold line-clamp-1 text-center text-primary drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
+        <h3 id={`comic-title-${comic.id}`} class="text-base sm:text-lg font-bold line-clamp-1 text-center text-primary drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
           {comic.md_comics.title}
         </h3>
       </div>

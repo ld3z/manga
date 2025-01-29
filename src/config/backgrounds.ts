@@ -75,3 +75,10 @@ export function getRandomBackground(): BackgroundImage {
   }
   return backgrounds[Math.floor(Math.random() * backgrounds.length)];
 }
+
+export function preloadBackgrounds() {
+  backgrounds.forEach(bg => {
+    const img = new Image();
+    img.src = bg.url;
+  });
+}

@@ -69,30 +69,43 @@ export function getGenreNames(genreIds: number[], genres: Genre[]): string[] {
     .filter(name => name !== '');
 }
 
+export class APIError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+    public endpoint?: string
+  ) {
+    super(message);
+    this.name = 'APIError';
+  }
+}
+
 export async function fetchComics(
   language: string = 'en', 
   contentType: string = 'sfw', 
   comicType: ComicType = 'all',
   page: number = 1
 ): Promise<Comic[]> {
+  const apiUrl = `${urlBase}?lang=${language}&page=${page}&order=new&accept_erotic_content=${contentType === 'nsfw'}${comicType === 'all' ? '' : `&type=${comicType}`}`;
+  
   try {
-    const typeParam = comicType === 'all' ? '' : `&type=${comicType}`;
-    const apiUrl = `${urlBase}?lang=${language}&page=${page}&order=new&accept_erotic_content=${contentType === 'nsfw'}${typeParam}`;
-    
     console.log('Fetching comics from:', apiUrl);
     
     const response = await fetchWithRetry(apiUrl);
     const data = await response.json();
 
     if (!Array.isArray(data)) {
-      console.error('Unexpected API response format:', data);
-      return [];
+      throw new APIError('Invalid API response format', undefined, apiUrl);
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching comics:', error);
-    return [];
+    if (error instanceof APIError) throw error;
+    throw new APIError(
+      'Failed to fetch comics',
+      error instanceof Response ? error.status : undefined,
+      apiUrl
+    );
   }
 }
 

@@ -6,11 +6,9 @@ export interface Comic {
     title: string;
     slug: string;
     genres: number[];
-    md_covers: {
-      b2key: string;
-    }[];
-    content_rating: string;
-    comic_type: string;
+    md_covers: ComicCover[];
+    content_rating: 'safe' | 'suggestive' | 'erotica';
+    comic_type: ComicType;
   };
 }
 
@@ -25,3 +23,9 @@ export interface FeedMapping {
 }
 
 export type ComicType = 'manga' | 'manhwa' | 'manhua' | 'all';
+
+export interface ComicCover {
+  b2key: string;
+  width?: number;
+  height?: number;
+}

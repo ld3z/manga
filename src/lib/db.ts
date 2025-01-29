@@ -3,6 +3,8 @@ import type { FeedMapping } from './types';
 
 const REDIS_URL = import.meta.env.REDIS_URL || process.env.REDIS_URL;
 let redis: Redis | null = null;
+let redisRetryCount = 0;
+const MAX_RETRIES = 3;
 
 try {
   console.log('Environment check:', {
@@ -23,11 +25,14 @@ try {
       console.log(`Retry attempt ${times} with delay ${delay}ms`);
       return delay;
     },
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 2,
     enableReadyCheck: true,
-    reconnectOnError(err) {
-      console.log('Reconnect on error:', err.message);
-      return true;
+    reconnectOnError: (err) => {
+      const targetError = 'READONLY';
+      if (err.message.includes(targetError)) {
+        return true;
+      }
+      return false;
     }
   });
 
@@ -52,6 +57,38 @@ try {
   if (error instanceof Error) {
     console.error('Error details:', error.message);
     console.error('Stack trace:', error.stack);
+  }
+}
+
+async function getRedisClient(): Promise<Redis> {
+  if (redis?.status === 'ready') return redis;
+  
+  if (redisRetryCount >= MAX_RETRIES) {
+    throw new Error('Failed to connect to Redis after multiple attempts');
+  }
+  
+  try {
+    redis = new Redis(REDIS_URL, {
+      retryStrategy(times) {
+        const delay = Math.min(times * 50, 2000);
+        console.log(`Retry attempt ${times} with delay ${delay}ms`);
+        return delay;
+      },
+      maxRetriesPerRequest: 2,
+      enableReadyCheck: true,
+      reconnectOnError: (err) => {
+        const targetError = 'READONLY';
+        if (err.message.includes(targetError)) {
+          return true;
+        }
+        return false;
+      }
+    });
+    redisRetryCount = 0;
+    return redis;
+  } catch (error) {
+    redisRetryCount++;
+    throw error;
   }
 }
 
