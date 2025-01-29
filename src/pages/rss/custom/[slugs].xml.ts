@@ -22,21 +22,28 @@ export const GET: APIRoute = async ({ params, url }) => {
     return new Response("No chapters found for the provided comics", { status: 404 });
   }
 
+  const siteUrl = new URL(url).origin;
+  const feedUrl = new URL(url).href;
+
   const feed = new Feed({
     title: `ComicK - Custom Feed (${lang.toUpperCase()})`,
     description: `Custom RSS feed for selected comics: ${slugs.join(', ')}`,
-    id: "https://github.com/ld3z/manga-rss",
-    link: "https://github.com/ld3z/manga-rss",
+    id: feedUrl,
+    link: siteUrl,
+    feedLinks: {
+      rss2: feedUrl
+    },
     language: lang,
     copyright: "All rights reserved",
     updated: new Date(),
   });
 
   chapters.forEach((chapter) => {
+    const chapterUrl = `https://comick.io/comic/${chapter.md_comics.slug}`;
     feed.addItem({
       title: `${chapter.md_comics.title} - Chapter ${chapter.chap}`,
-      id: `${chapter.md_comics.slug}-${chapter.chap}`,
-      link: `https://comick.io/comic/${chapter.md_comics.slug}`,
+      id: `urn:comick:${chapter.md_comics.slug}:${chapter.chap}`,
+      link: chapterUrl,
       description: `New chapter available: Chapter ${chapter.chap}`,
       date: new Date(chapter.updated_at),
     });
