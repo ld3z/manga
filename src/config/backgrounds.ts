@@ -52,19 +52,19 @@ export const backgrounds: BackgroundImage[] = [
   },
   {
     url: "/numi.webp",
-    title: "Original",
-    artist: "Nnnoira",
-    source: "https://danbooru.donmai.us/posts/8571660",
+    title: "Numi",
+    artist: "TenIllustrator",
+    source: "https://danbooru.donmai.us/posts/8074444",
     socials: [
       {
         name: "Twitter",
-        link: "https://x.com/Nnnoira",
+        link: "https://x.com/Ten_0123_/",
       },
     ],
   },
   {
     url: "/shylily.webp",
-    title: "Original",
+    title: "Shylily",
     artist: "greatodoggo",
     source: "https://www.pixiv.net/en/artworks/124222053",
     socials: [
