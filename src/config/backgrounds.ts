@@ -11,7 +11,7 @@ interface BackgroundImage {
 
 export const backgrounds: BackgroundImage[] = [
   {
-    url: '/citali.webp',
+    url: "/citali.webp",
     title: "Citlali (Genshin Impact)",
     artist: "ryrmcher",
     source: "https://danbooru.donmai.us/posts/6148600",
@@ -42,11 +42,35 @@ export const backgrounds: BackgroundImage[] = [
     url: "/original.webp",
     title: "読書",
     artist: "kamepan44231 - かめぱすた",
-    source: "https://danbooru.donmai.us/posts/8743208?",
+    source: "https://danbooru.donmai.us/posts/8743208",
     socials: [
       {
         name: "Twitter",
         link: "https://x.com/kamepan44231",
+      },
+    ],
+  },
+  {
+    url: "/numi.webp",
+    title: "Original",
+    artist: "Nnnoira",
+    source: "https://danbooru.donmai.us/posts/8571660",
+    socials: [
+      {
+        name: "Twitter",
+        link: "https://x.com/Nnnoira",
+      },
+    ],
+  },
+  {
+    url: "/shylily.webp",
+    title: "Original",
+    artist: "greatodoggo",
+    source: "https://www.pixiv.net/en/artworks/124222053",
+    socials: [
+      {
+        name: "Twitter",
+        link: "https://twitter.com/greatodoggo",
       },
     ],
   },
@@ -66,7 +90,7 @@ export function getRandomBackground(): BackgroundImage {
   if (backgrounds.length === 0) {
     // Fallback background if array is empty
     return {
-      url: "https://cdn.donmai.us/original/97/c8/__citlali_genshin_impact_drawn_by_ryrmcher__97c810ff6e992f1789f93e2edbb683a3.jpg",
+      url: "/citali.webp",
       title: "Citlali (Genshin Impact)",
       artist: "ryrmcher",
       source: "https://danbooru.donmai.us/posts/6148600",
@@ -77,7 +101,7 @@ export function getRandomBackground(): BackgroundImage {
 }
 
 export function preloadBackgrounds() {
-  backgrounds.forEach(bg => {
+  backgrounds.forEach((bg) => {
     const img = new Image();
     img.src = bg.url;
   });
