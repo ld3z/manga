@@ -125,8 +125,15 @@ const languages = [
 
     const promises = [...slugs].map(async (slug) => {
       try {
-        // Use our API endpoint instead of direct ComicK API call
-        const response = await fetch(`/api/comic/${encodeURIComponent(slug)}`);
+        // Add timeout for comic info fetch
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch(`/api/comic/${encodeURIComponent(slug)}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) throw new Error('Comic not found');
         
         const data = await response.json();
@@ -333,6 +340,17 @@ const languages = [
     
     if (slugString) {
       try {
+        // Add loading state
+        generateRSSLink!.innerHTML = `
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+            Generating...
+          </span>
+        `;
+        generateRSSLink!.onclick = null;
+
         const response = await fetch('/api/create-feed', {
           method: 'POST',
           headers: {
@@ -348,9 +366,16 @@ const languages = [
         
         const { feedId } = await response.json();
         generateRSSLink!.href = `/rss/${feedId}.xml`;
-        generateRSSLink!.onclick = null;
       } catch (error) {
         console.error('Failed to generate feed:', error);
+        generateRSSLink!.innerHTML = `
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+            Failed to generate feed
+          </span>
+        `;
       }
     } else {
       generateRSSLink!.href = '#';

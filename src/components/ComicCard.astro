@@ -31,6 +31,8 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
           alt={comic.md_comics.title} 
           inferSize={true}
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+          decoding="async"
         />
       ) : (
         <img
@@ -52,7 +54,10 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
     
     <div class="p-3 sm:p-4 md:p-5 flex-grow flex flex-col bg-secondary relative rounded-b-xl">
       <div class="absolute -top-6 sm:-top-8 left-2 right-2 sm:left-3 sm:right-3 bg-secondary/95 backdrop-blur-[12px] p-2 sm:p-3 rounded-lg shadow-lg border border-hover/30">
-        <h3 id={`comic-title-${comic.id}`} class="text-base sm:text-lg font-bold line-clamp-1 text-center text-primary drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
+        <h3 id={`comic-title-${comic.id}`} 
+          class="text-base sm:text-lg font-bold line-clamp-1 text-center text-primary drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]"
+          aria-label={comic.md_comics.title}
+        >
           {comic.md_comics.title}
         </h3>
       </div>
@@ -219,21 +224,36 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
       timerSpan.textContent = timeString;
     }
 
+    // Add intersection observer for lazy loading
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const timer = entry.target.querySelector('.countdown-timer');
+          if (timer) updateTimer(timer);
+        }
+      });
+    });
+
+    // Update countdown timer initialization
     countdownTimers.forEach(timer => {
+      observer.observe(timer);
       updateTimer(timer);
-      // Update every second
-      setInterval(() => updateTimer(timer), 1000);
+      setInterval(() => {
+        if (timer.isConnected) updateTimer(timer);
+      }, 1000);
     });
   });
 
   function filterComics() {
     const excludedGenres = new Set(JSON.parse(localStorage.getItem('excluded-genres') || '[]'));
     
-    document.querySelectorAll('[data-genres]').forEach(card => {
-      const cardGenres = JSON.parse((card as HTMLElement).dataset.genres || '[]');
-      const shouldHide = cardGenres.some((genreId: number) => excludedGenres.has(genreId));
-      
-      card.classList.toggle('hidden', shouldHide);
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      document.querySelectorAll('[data-genres]').forEach(card => {
+        const cardGenres = JSON.parse((card as HTMLElement).dataset.genres || '[]');
+        const shouldHide = cardGenres.some((genreId: number) => excludedGenres.has(genreId));
+        card.classList.toggle('hidden', shouldHide);
+      });
     });
   }
 
