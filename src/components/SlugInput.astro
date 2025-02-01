@@ -366,19 +366,43 @@ const languages = [
         
         const { feedId } = await response.json();
         generateRSSLink!.href = `/rss/${feedId}.xml`;
+        
+        // Clear loading state after successful generation
+        generateRSSLink!.innerHTML = `
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 11a9 9 0 0 1 9 9"></path>
+              <path d="M4 4a16 16 0 0 1 16 16"></path>
+              <circle cx="5" cy="19" r="1"></circle>
+            </svg>
+            RSS Feed Ready
+          </span>
+        `;
+        generateRSSLink!.onclick = null; // Remove any existing click handlers
       } catch (error) {
         console.error('Failed to generate feed:', error);
         generateRSSLink!.innerHTML = `
           <span class="flex items-center gap-2">
-            <svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            Failed to generate feed
+            Failed to generate
           </span>
         `;
       }
     } else {
+      // Reset to default state when no slugs
       generateRSSLink!.href = '#';
+      generateRSSLink!.innerHTML = `
+        <span class="flex items-center gap-2">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1"></circle>
+          </svg>
+          Generate RSS Feed
+        </span>
+      `;
       generateRSSLink!.onclick = (e) => {
         e.preventDefault();
         return false;
