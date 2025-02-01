@@ -50,9 +50,9 @@ const languages = [
   <div id="slug-list" class="space-y-2">
     {currentSlugs.map(slug => (
       <div class="flex items-center justify-between p-3 bg-primary rounded-lg border border-hover/30" data-slug={slug}>
-        <span class="text-primary">{slug}</span>
+        <span class="text-primary truncate pr-2">{slug}</span>
         <button 
-          class="text-red-500 hover:text-red-600 transition-colors"
+          class="text-red-500 hover:text-red-600 transition-colors flex-shrink-0 pl-2"
           data-remove={slug}
         >
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -139,14 +139,14 @@ const languages = [
         const data = await response.json();
         
         const div = document.createElement('div');
-        div.className = 'flex items-center gap-4 p-4 bg-primary rounded-lg border border-hover/30 hover:border-accent/50 transition-all duration-300 group relative';
+        div.className = 'flex items-center gap-4 p-4 bg-primary rounded-lg border border-hover/30 hover:border-accent/50 transition-all duration-300 group relative overflow-hidden';
         
         // Add a link to the comic
         const link = document.createElement('a');
         link.href = `https://comick.io/comic/${slug}`;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.className = 'flex items-center gap-4 flex-1';
+        link.className = 'flex items-center gap-4 flex-1 min-w-0';
         
         // Handle cover image
         if (data.comic?.md_covers?.[0]?.b2key) {
@@ -168,7 +168,7 @@ const languages = [
         }
         
         const info = document.createElement('div');
-        info.className = 'flex-1 min-w-0';
+        info.className = 'flex-1 min-w-0 truncate';
         info.innerHTML = `
           <div class="font-medium text-lg truncate group-hover:text-accent transition-colors">
             ${data.comic?.title || slug}
@@ -185,7 +185,7 @@ const languages = [
         div.appendChild(link);
         
         const removeBtn = document.createElement('button');
-        removeBtn.className = 'text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-500/10 rounded-full flex-shrink-0 relative z-10';
+        removeBtn.className = 'text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-500/10 rounded-full flex-shrink-0';
         removeBtn.innerHTML = `
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 18L18 6M6 6l12 12"></path>

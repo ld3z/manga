@@ -52,7 +52,7 @@ const genres = await fetchGenres();
             <input
               type="checkbox"
               value={genre.id}
-              class="genre-checkbox"
+              class="genre-checkbox w-4 h-4 rounded border border-hover/30 bg-primary checked:bg-accent transition-all duration-200 ease-in-out"
             />
             <span class="text-sm">{genre.name}</span>
           </label>

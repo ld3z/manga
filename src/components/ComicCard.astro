@@ -71,14 +71,14 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
           <div class="relative mt-3" aria-label="Comic genres">
             <div class="flex flex-wrap gap-2">
               {genreNames.slice(0, 3).map(genre => (
-                <span class="bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium truncate transition-all hover:bg-hover/80" title={genre}>
+                <span class="bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium truncate">
                   {genre}
                 </span>
               ))}
               {genreNames.length > 3 && (
                 <button 
                   type="button"
-                  class="expand-tags-btn bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium hover:bg-hover/80 cursor-pointer transition-colors"
+                  class="expand-tags-btn bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium hover:bg-hover/80 hover:scale-105 cursor-pointer transition-all duration-200 ease-in-out"
                   aria-expanded="false"
                   data-comic-id={comic.id}
                 >
@@ -95,7 +95,7 @@ const isNSFW = comic.md_comics.content_rating === 'erotica';
               >
                 <div class="flex flex-wrap gap-2">
                   {genreNames.slice(3).map(genre => (
-                    <span class="bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium truncate transition-all hover:bg-hover/80" title={genre}>
+                    <span class="bg-hover text-primary/80 px-3 py-1 rounded-full text-xs font-medium truncate">
                       {genre}
                     </span>
                   ))}

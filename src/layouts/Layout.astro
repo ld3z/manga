@@ -70,7 +70,7 @@ const announcement = {
         <div class="relative" id="settings-dropdown">
           <button
             id="settings-button"
-            class="p-2.5 sm:p-3 bg-secondary rounded-lg hover:bg-hover transition-colors shadow-lg border border-hover/30 flex items-center gap-2"
+            class="p-2.5 sm:p-3 bg-secondary rounded-lg hover:bg-hover transition-all duration-200 shadow-lg border border-hover/30 flex items-center gap-2 hover:-translate-y-0.5"
             aria-label="Settings"
           >
             <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -270,6 +270,15 @@ const announcement = {
 
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .animate-bounce {
+    animation: bounce 1s infinite;
   }
 </style>
 
