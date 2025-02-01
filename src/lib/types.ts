@@ -29,3 +29,13 @@ export interface ComicCover {
   width?: number;
   height?: number;
 }
+
+export interface Announcement {
+  message: string;
+  type: 'info' | 'warning' | 'success';
+  dismissible?: boolean;
+  link?: {
+    text: string;
+    url: string;
+  };
+}
