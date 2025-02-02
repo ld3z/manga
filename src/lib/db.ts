@@ -110,7 +110,7 @@ export async function storeFeedMapping(feedId: string, slugs: string[], lang: st
       feedId, 
       JSON.stringify(mapping),
       'EX',
-      DEFAULT_CACHE_TTL // Use the constant here
+      DEFAULT_CACHE_TTL
     );
   } catch (error) {
     console.error('Error storing feed mapping:', error);
@@ -127,6 +127,8 @@ export async function getFeedMapping(feedId: string): Promise<FeedMapping | null
   try {
     const mapping = await redis.get(feedId);
     if (!mapping) return null;
+    
+    await redis.expire(feedId, DEFAULT_CACHE_TTL);
     
     const data = JSON.parse(mapping);
     return {
