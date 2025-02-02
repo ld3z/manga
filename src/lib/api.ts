@@ -1,4 +1,5 @@
 import type { Comic, Genre, ComicType } from './types';
+import { getRedisClient } from './db';
 
 const languageMap = {
   "en": "English",
@@ -256,9 +257,27 @@ export async function getChaptersForSlugs(
 ): Promise<ChapterDetail[]> {
   console.log(`Fetching chapters for slugs:`, slugs, `in language: ${lang}`);
   const chapters: ChapterDetail[] = [];
+  const redis = await getRedisClient();
   
+  // Cache results for 1 hour (3600 seconds)
+  const CACHE_TTL = 60 * 60;
+
   for (const slug of slugs) {
     console.log(`Processing slug: ${slug}`);
+    const cacheKey = `chapters:${slug}:${lang}`;
+    
+    try {
+      // Try to get cached chapters
+      const cachedChapters = await redis.get(cacheKey);
+      if (cachedChapters) {
+        console.log(`Using cached chapters for ${slug}`);
+        chapters.push(...JSON.parse(cachedChapters));
+        continue;
+      }
+    } catch (error) {
+      console.error('Redis cache read error:', error);
+    }
+
     const comicDetail = await getComicBySlug(slug);
     
     if (!comicDetail) {
@@ -284,6 +303,19 @@ export async function getChaptersForSlugs(
     
     if (comicChapters.length > 0) {
       chapters.push(...comicChapters);
+      
+      // Cache the results
+      try {
+        await redis.set(
+          cacheKey,
+          JSON.stringify(comicChapters),
+          'EX',
+          CACHE_TTL
+        );
+        console.log(`Cached chapters for ${slug}`);
+      } catch (error) {
+        console.error('Redis cache write error:', error);
+      }
     }
   }
   

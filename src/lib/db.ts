@@ -5,6 +5,7 @@ const REDIS_URL = import.meta.env.REDIS_URL || process.env.REDIS_URL;
 let redis: Redis | null = null;
 let redisRetryCount = 0;
 const MAX_RETRIES = 3;
+const DEFAULT_CACHE_TTL = 60 * 60 * 24 * 30; // 30 days
 
 try {
   console.log('Environment check:', {
@@ -60,7 +61,7 @@ try {
   }
 }
 
-async function getRedisClient(): Promise<Redis> {
+export async function getRedisClient(): Promise<Redis> {
   if (redis?.status === 'ready') return redis;
   
   if (redisRetryCount >= MAX_RETRIES) {
@@ -109,7 +110,7 @@ export async function storeFeedMapping(feedId: string, slugs: string[], lang: st
       feedId, 
       JSON.stringify(mapping),
       'EX',
-      60 * 60 * 24 * 30 // 30 days in seconds
+      DEFAULT_CACHE_TTL // Use the constant here
     );
   } catch (error) {
     console.error('Error storing feed mapping:', error);
