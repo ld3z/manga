@@ -177,11 +177,11 @@ export async function getComicBySlug(slug: string): Promise<ComicDetail | null> 
 export async function getChaptersByHid(
   hid: string,
   slug: string,
-  params: ChapterParams = { limit: 15, lang: 'en' }
+  params: ChapterParams = { limit: 5, lang: 'en' }
 ): Promise<ChapterDetail[]> {
   try {
     const queryParams = new URLSearchParams({
-      limit: params.limit?.toString() || '15',
+      limit: params.limit?.toString() || '5',
       lang: params.lang || 'en',
       ordering: '-created_at'
     });
@@ -276,7 +276,7 @@ export async function getChaptersForSlugs(
       comicDetail.comic.hid,
       slug,
       {
-        limit: 15,
+        limit: 5,
         lang: lang
       }
     );
