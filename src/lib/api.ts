@@ -209,39 +209,31 @@ export async function getChaptersByHid(
     
     const now = new Date();
     
-    const chapters = data.chapters
-      .filter(chapter => {
-        // Basic validation
-        const isValid = chapter && 
-               chapter.chap &&
-               chapter.hid;
+    const chapters: ChapterDetail[] = [];
+    const rawChapters = data.chapters || [];
 
-        if (!isValid) return false;
-
-        // Check publish time
-        if (chapter.publish_at) {
-          const publishTime = new Date(chapter.publish_at);
-          if (publishTime > now) {
-            console.log(`Chapter ${chapter.chap} will be published at ${publishTime}`);
-            return false;
+    for (const chap of rawChapters) {
+      try {
+        if (!chap.id || !chap.chap || !chap.updated_at) {
+          console.warn(`Skipping chapter with missing fields in ${hid}:`, chap);
+          continue;
+        }
+        
+        chapters.push({
+          id: chap.id,
+          chap: chap.chap.toString(),
+          title: chap.title || `Chapter ${chap.chap}`,
+          updated_at: chap.updated_at,
+          md_comics: {
+            title: comicTitle,
+            slug: slug,
+            md_covers: covers
           }
-        }
-
-        // Use the earliest available timestamp
-        const hasValidTimestamp = chapter.publish_at || chapter.created_at || chapter.updated_at;
-        return Boolean(hasValidTimestamp);
-      })
-      .map(chapter => ({
-        id: chapter.hid,
-        chap: chapter.chap,
-        title: chapter.title || `Chapter ${chapter.chap}`,
-        updated_at: chapter.publish_at || chapter.created_at || chapter.updated_at,
-        md_comics: {
-          title: comicTitle,
-          slug: slug,
-          md_covers: covers
-        }
-      }));
+        });
+      } catch (e) {
+        console.error(`Error processing chapter ${chap.id} for ${hid}:`, e);
+      }
+    }
 
     console.log(`Successfully processed ${chapters.length} chapters for ${comicTitle}`);
     return chapters;
@@ -251,88 +243,139 @@ export async function getChaptersByHid(
   }
 }
 
+// Add deduplication function
+function deduplicateChapters(chapters: ChapterDetail[]): ChapterDetail[] {
+  const seen = new Set<string>();
+  return chapters.filter(chapter => {
+    const key = `${chapter.md_comics.slug}-${chapter.chap}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export async function getChaptersForSlugs(
   slugs: string[], 
   lang: string = 'en'
 ): Promise<ChapterDetail[]> {
-  console.log(`Fetching chapters for slugs:`, slugs, `in language: ${lang}`);
-  const chapters: ChapterDetail[] = [];
+  console.log(`Fetching chapters for ${slugs.length} comics`);
   const redis = await getRedisClient();
-  
-  // Cache results for 1 hour (3600 seconds)
   const CACHE_TTL = 60 * 60;
+  
+  const uniqueSlugs = [...new Set(slugs)];
+  const pipeline = redis.pipeline();
 
-  for (const slug of slugs) {
-    console.log(`Processing slug: ${slug}`);
+  // Add cache key validation
+  uniqueSlugs.forEach(slug => {
+    if (!slug.match(/^[a-z0-9-]+$/)) {
+      console.error(`Invalid slug format: ${slug}`);
+    }
     const cacheKey = `chapters:${slug}:${lang}`;
-    
-    try {
-      // Try to get cached chapters
-      const cachedChapters = await redis.get(cacheKey);
-      if (cachedChapters) {
-        console.log(`Using cached chapters for ${slug}`);
-        chapters.push(...JSON.parse(cachedChapters));
-        continue;
-      }
-    } catch (error) {
-      console.error('Redis cache read error:', error);
-    }
+    pipeline.get(cacheKey);
+  });
 
-    const comicDetail = await getComicBySlug(slug);
-    
-    if (!comicDetail) {
-      console.error(`Failed to get comic details for slug: ${slug}`);
-      continue;
+  const [cacheResults, slugsToFetch] = await Promise.all([
+    pipeline.exec(),
+    validateSlugs(uniqueSlugs) // Add this new function
+  ]);
+
+  const cachedChapters: ChapterDetail[] = [];
+  cacheResults.forEach(([err, result], index) => {
+    if (!err && result) {
+      try {
+        const parsed = JSON.parse(result);
+        if (Array.isArray(parsed)) {
+          cachedChapters.push(...parsed);
+        }
+      } catch (e) {
+        console.error(`Cache parse error for ${uniqueSlugs[index]}:`, e);
+      }
     }
-    
-    if (!comicDetail.comic?.hid) {
-      console.error(`No HID found for slug ${slug}`, comicDetail);
-      continue;
-    }
-    
-    console.log(`Found HID ${comicDetail.comic.hid} for slug ${slug}`);
-    const comicChapters = await getChaptersByHid(
-      comicDetail.comic.hid,
-      slug,
-      {
+  });
+
+  // Add progress tracking
+  console.log(`Cache hits: ${cachedChapters.length} chapters from ${slugs.length - slugsToFetch.length} comics`);
+  console.log(`Fetching ${slugsToFetch.length} comics from API`);
+
+  const fetchPromises = slugsToFetch.map(async (slug) => {
+    const timer = Date.now();
+    try {
+      const comicDetail = await getComicBySlug(slug);
+      
+      if (!comicDetail?.comic?.hid) {
+        console.error(`❌ No HID found for ${slug}`);
+        return [];
+      }
+      
+      const chapters = await getChaptersByHid(comicDetail.comic.hid, slug, {
         limit: 5,
         lang: lang
-      }
-    );
-    console.log(`Found ${comicChapters.length} chapters for ${slug}`);
-    
-    if (comicChapters.length > 0) {
-      chapters.push(...comicChapters);
+      });
       
-      // Cache the results
-      try {
-        await redis.set(
-          cacheKey,
-          JSON.stringify(comicChapters),
-          'EX',
-          CACHE_TTL
-        );
-        console.log(`Cached chapters for ${slug}`);
-      } catch (error) {
-        console.error('Redis cache write error:', error);
-      }
+      console.log(`✅ ${slug} (${comicDetail.comic.hid}) returned ${chapters.length} chapters in ${Date.now() - timer}ms`);
+      return chapters;
+    } catch (error) {
+      console.error(`🚨 Error processing ${slug}:`, error);
+      return [];
     }
+  });
+
+  const liveChapters = (await Promise.all(fetchPromises)).flat();
+  
+  // Cache new results in batch
+  const cachePipeline = redis.pipeline();
+  const chaptersBySlug: Record<string, ChapterDetail[]> = {};
+
+  liveChapters.forEach(chapter => {
+    const slug = chapter.md_comics.slug;
+    if (!chaptersBySlug[slug]) {
+      chaptersBySlug[slug] = [];
+    }
+    chaptersBySlug[slug].push(chapter);
+  });
+
+  Object.entries(chaptersBySlug).forEach(([slug, chaps]) => {
+    const cacheKey = `chapters:${slug}:${lang}`;
+    cachePipeline.set(
+      cacheKey, 
+      JSON.stringify(chaps), 
+      'EX', 
+      CACHE_TTL
+    );
+  });
+
+  await cachePipeline.exec();
+
+  // Combine and sort all chapters
+  const allChapters = [...cachedChapters, ...liveChapters];
+  const deduplicatedChapters = deduplicateChapters(allChapters);
+  return deduplicatedChapters.sort((a, b) => 
+    parseFloat(b.chap) - parseFloat(a.chap) ||
+    new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  );
+}
+
+// Add this new validation function
+async function validateSlugs(slugs: string[]): Promise<string[]> {
+  const validSlugs: string[] = [];
+  const invalidSlugs: string[] = [];
+  
+  await Promise.all(slugs.map(async (slug) => {
+    try {
+      const response = await fetchWithRetry(`https://api.comick.fun/comic/${slug}`, {}, 1);
+      if (response.ok) {
+        validSlugs.push(slug);
+      } else {
+        invalidSlugs.push(slug);
+      }
+    } catch {
+      invalidSlugs.push(slug);
+    }
+  }));
+  
+  if (invalidSlugs.length > 0) {
+    console.error(`Invalid/Unavailable slugs: ${invalidSlugs.join(', ')}`);
   }
   
-  // Sort by chapter number (descending) first, then by date
-  const sortedChapters = chapters.sort((a, b) => {
-    // Convert chapter numbers to floats for proper numerical sorting
-    const chapA = parseFloat(a.chap);
-    const chapB = parseFloat(b.chap);
-    
-    if (chapB !== chapA) {
-      return chapB - chapA; // Sort by chapter number first
-    }
-    
-    // If chapters are the same, sort by date
-    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-  });
-  
-  console.log(`Total chapters found: ${sortedChapters.length}`);
-  return sortedChapters;
+  return validSlugs;
 }

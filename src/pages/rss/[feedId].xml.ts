@@ -1,6 +1,6 @@
 import { Feed } from 'feed';
 import { getChaptersForSlugs, isValidLanguage } from "../../lib/api";
-import { getFeedMapping } from "../../lib/db";
+import { getFeedMapping, warmChapterCache } from "../../lib/db";
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ params, request }) => {
@@ -21,6 +21,8 @@ export const GET: APIRoute = async ({ params, request }) => {
   if (!isValidLanguage(lang)) {
     return new Response("Invalid language", { status: 400 });
   }
+
+  await warmChapterCache(slugs, lang);
 
   const chapters = await getChaptersForSlugs(slugs, lang);
 

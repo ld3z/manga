@@ -2,103 +2,113 @@ import Redis from 'ioredis';
 import type { FeedMapping } from './types';
 
 const REDIS_URL = import.meta.env.REDIS_URL || process.env.REDIS_URL;
-let redis: Redis | null = null;
-let redisRetryCount = 0;
-const MAX_RETRIES = 3;
+let redisClient: Redis | null = null;
 const DEFAULT_CACHE_TTL = 60 * 60 * 24 * 30; // 30 days
+const MAX_RETRIES = 5;
+const BASE_DELAY_MS = 100;
 
-try {
-  console.log('Environment check:', {
-    hasEnvVar: !!REDIS_URL,
-    envVarStart: REDIS_URL?.substring(0, 20) + '...',
-    nodeEnv: process.env.NODE_ENV
-  });
-
-  if (!REDIS_URL) {
-    throw new Error('REDIS_URL environment variable is not set');
-  }
-
-  console.log('Attempting to connect to Redis...');
+// Improved connection handling with exponential backoff
+async function createRedisClient(): Promise<Redis> {
+  if (!REDIS_URL) throw new Error('REDIS_URL environment variable is not set');
   
-  redis = new Redis(REDIS_URL, {
-    retryStrategy(times) {
-      const delay = Math.min(times * 50, 2000);
-      console.log(`Retry attempt ${times} with delay ${delay}ms`);
-      return delay;
+  return new Redis(REDIS_URL, {
+    retryStrategy: (times) => {
+      if (times >= MAX_RETRIES) return null;
+      const delay = Math.min(BASE_DELAY_MS * Math.pow(2, times), 5000);
+      console.log(`Redis retry attempt ${times}, next try in ${delay}ms`);
+      return delay + Math.random() * 200; // Add jitter
     },
-    maxRetriesPerRequest: 2,
+    maxRetriesPerRequest: 1,
+    enableOfflineQueue: false,
     enableReadyCheck: true,
     reconnectOnError: (err) => {
-      const targetError = 'READONLY';
-      if (err.message.includes(targetError)) {
-        return true;
-      }
-      return false;
+      return err.message.includes('READONLY');
     }
   });
+}
 
-  redis.on('error', (error) => {
-    console.error('Redis connection error:', error.message);
+// Singleton pattern with connection pooling
+export async function getRedisClient(): Promise<Redis> {
+  if (redisClient?.status === 'ready') {
+    // Validate connection with a quick ping
+    try {
+      await redisClient.ping();
+      return redisClient;
+    } catch {
+      // Fall through to reconnect
+    }
+  }
+
+  console.log('Initializing new Redis connection...');
+  redisClient = await createRedisClient();
+  
+  // Add event listeners for better monitoring
+  redisClient
+    .on('ready', () => console.log('Redis connection ready'))
+    .on('error', (err) => console.error('Redis error:', err))
+    .on('reconnecting', () => console.log('Redis reconnecting'))
+    .on('end', () => console.log('Redis connection closed'));
+
+  return redisClient;
+}
+
+// Batch operations for better performance
+export async function storeFeedMappings(mappings: Array<{ feedId: string, slugs: string[], lang: string }>): Promise<void> {
+  const redis = await getRedisClient();
+  const pipeline = redis.pipeline();
+  
+  mappings.forEach(({ feedId, slugs, lang }) => {
+    const mapping = {
+      slugs,
+      lang,
+      created_at: new Date().toISOString()
+    };
+    pipeline.set(feedId, JSON.stringify(mapping), 'EX', DEFAULT_CACHE_TTL);
   });
 
-  redis.on('connect', () => {
-    console.log('Successfully connected to Redis');
-  });
+  await pipeline.exec();
+}
 
-  redis.on('ready', () => {
-    console.log('Redis client is ready');
-  });
-
-  redis.on('reconnecting', () => {
-    console.log('Redis client is reconnecting');
-  });
-
-} catch (error) {
-  console.error('Failed to initialize Redis:', error);
-  if (error instanceof Error) {
-    console.error('Error details:', error.message);
-    console.error('Stack trace:', error.stack);
+// Update warmChapterCache to prevent empty cache entries
+export async function warmChapterCache(slugs: string[], lang: string): Promise<void> {
+  const redis = await getRedisClient();
+  const needsCache = await checkCacheStatus(slugs, lang);
+  
+  if (needsCache.length > 0) {
+    console.log(`Pre-warming cache for ${needsCache.length} comics`);
+    const pipeline = redis.pipeline();
+    
+    // Replace empty array with actual chapter fetching
+    await Promise.all(needsCache.map(async slug => {
+      try {
+        const chapters = await getChaptersForSlugs([slug], lang);
+        const cacheKey = `chapters:${slug}:${lang}`;
+        pipeline.set(cacheKey, JSON.stringify(chapters), 'EX', 60 * 60);
+      } catch (error) {
+        console.error(`Failed to warm cache for ${slug}:`, error);
+      }
+    }));
+    
+    await pipeline.exec();
   }
 }
 
-export async function getRedisClient(): Promise<Redis> {
-  if (redis?.status === 'ready') return redis;
+// Add batch cache checking
+export async function checkCacheStatus(slugs: string[], lang: string): Promise<string[]> {
+  const redis = await getRedisClient();
+  const pipeline = redis.pipeline();
   
-  if (redisRetryCount >= MAX_RETRIES) {
-    throw new Error('Failed to connect to Redis after multiple attempts');
-  }
-  
-  try {
-    redis = new Redis(REDIS_URL, {
-      retryStrategy(times) {
-        const delay = Math.min(times * 50, 2000);
-        console.log(`Retry attempt ${times} with delay ${delay}ms`);
-        return delay;
-      },
-      maxRetriesPerRequest: 2,
-      enableReadyCheck: true,
-      reconnectOnError: (err) => {
-        const targetError = 'READONLY';
-        if (err.message.includes(targetError)) {
-          return true;
-        }
-        return false;
-      }
-    });
-    redisRetryCount = 0;
-    return redis;
-  } catch (error) {
-    redisRetryCount++;
-    throw error;
-  }
+  slugs.forEach(slug => {
+    const cacheKey = `chapters:${slug}:${lang}`;
+    pipeline.exists(cacheKey);
+  });
+
+  const results = await pipeline.exec();
+  return slugs.filter((_, index) => results![index][1] === 0);
 }
 
 export async function storeFeedMapping(feedId: string, slugs: string[], lang: string): Promise<void> {
-  if (!redis) {
-    console.error('Redis client not initialized');
-    throw new Error('Storage system unavailable');
-  }
-
+  const redis = await getRedisClient();
   const mapping = {
     slugs,
     lang,
@@ -119,11 +129,8 @@ export async function storeFeedMapping(feedId: string, slugs: string[], lang: st
 }
 
 export async function getFeedMapping(feedId: string): Promise<FeedMapping | null> {
-  if (!redis) {
-    console.error('Redis client not initialized');
-    throw new Error('Storage system unavailable');
-  }
-
+  const redis = await getRedisClient();
+  
   try {
     const mapping = await redis.get(feedId);
     if (!mapping) return null;
