@@ -355,8 +355,8 @@ export async function getChaptersForSlugs(
   );
 }
 
-// Add this new validation function
-async function validateSlugs(slugs: string[]): Promise<string[]> {
+// Add export to the validation function
+export async function validateSlugs(slugs: string[]): Promise<string[]> {
   const validSlugs: string[] = [];
   const invalidSlugs: string[] = [];
   

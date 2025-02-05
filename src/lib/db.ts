@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import type { FeedMapping } from './types';
+import { getChaptersForSlugs } from './api';
 
 const REDIS_URL = import.meta.env.REDIS_URL || process.env.REDIS_URL;
 let redisClient: Redis | null = null;
