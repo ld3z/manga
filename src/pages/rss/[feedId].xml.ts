@@ -48,7 +48,19 @@ export const GET: APIRoute = async ({ params, request }) => {
   });
 
   chapters.forEach((chapter) => {
+    if (!chapter?.created_at) {
+      console.error('Chapter missing created_at:', chapter);
+      return;
+    }
+
     const chapterUrl = `https://comick.io/comic/${chapter.md_comics.slug}`;
+    
+    const rawDate = chapter.created_at.endsWith('Z') 
+      ? chapter.created_at 
+      : `${chapter.created_at}Z`;
+    
+    const pubDate = isValidDate(rawDate) ? new Date(rawDate) : new Date();
+
     feed.addItem({
       title: `${chapter.md_comics.title} - Chapter ${chapter.chap}`,
       id: `${chapter.md_comics.slug}-${chapter.chap}`,
@@ -64,7 +76,7 @@ export const GET: APIRoute = async ({ params, request }) => {
           <p>New chapter available: Chapter ${chapter.chap}</p>
         </div>
       `,
-      date: new Date(chapter.updated_at),
+      date: pubDate,
     });
   });
 
@@ -73,4 +85,8 @@ export const GET: APIRoute = async ({ params, request }) => {
       'Content-Type': 'application/xml; charset=utf-8',
     },
   });
-}; 
+};
+
+function isValidDate(dateString: string): boolean {
+  return !isNaN(Date.parse(dateString));
+} 

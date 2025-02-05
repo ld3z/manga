@@ -39,3 +39,15 @@ export interface Announcement {
     url: string;
   };
 }
+
+export interface ChapterDetail {
+  id: string;
+  chap: string;
+  title: string;
+  created_at: string;
+  md_comics: {
+    title: string;
+    slug: string;
+    md_covers?: ComicCover[];
+  };
+}

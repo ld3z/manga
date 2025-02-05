@@ -214,8 +214,18 @@ export async function getChaptersByHid(
 
     for (const chap of rawChapters) {
       try {
-        if (!chap.id || !chap.chap || !chap.updated_at) {
+        // Add created_at check
+        if (!chap.id || !chap.chap || !chap.created_at) {
           console.warn(`Skipping chapter with missing fields in ${hid}:`, chap);
+          continue;
+        }
+        
+        // Validate both dates
+        const isValidCreated = !isNaN(Date.parse(chap.created_at));
+        const isValidUpdated = !isNaN(Date.parse(chap.updated_at));
+        
+        if (!isValidCreated || !isValidUpdated) {
+          console.warn(`Invalid dates for chapter ${chap.id}`);
           continue;
         }
         
@@ -223,7 +233,7 @@ export async function getChaptersByHid(
           id: chap.id,
           chap: chap.chap.toString(),
           title: chap.title || `Chapter ${chap.chap}`,
-          updated_at: chap.updated_at,
+          created_at: new Date(chap.created_at).toISOString(), // Use created_at
           md_comics: {
             title: comicTitle,
             slug: slug,
@@ -231,7 +241,7 @@ export async function getChaptersByHid(
           }
         });
       } catch (e) {
-        console.error(`Error processing chapter ${chap.id} for ${hid}:`, e);
+        console.error(`Error processing chapter ${chap.id}:`, e);
       }
     }
 
@@ -352,7 +362,7 @@ export async function getChaptersForSlugs(
   const deduplicatedChapters = deduplicateChapters(allChapters);
   return deduplicatedChapters.sort((a, b) => 
     parseFloat(b.chap) - parseFloat(a.chap) ||
-    new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 }
 
