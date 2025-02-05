@@ -294,7 +294,8 @@ export async function getChaptersForSlugs(
   });
 
   // Add progress tracking
-  console.log(`Cache hits: ${cachedChapters.length} chapters from ${slugs.length - slugsToFetch.length} comics`);
+  const cachedSlugs = new Set(cachedChapters.map(c => c.md_comics.slug));
+  console.log(`Cache hits: ${cachedChapters.length} chapters from ${cachedSlugs.size} comics`);
   console.log(`Fetching ${slugsToFetch.length} comics from API`);
 
   const fetchPromises = slugsToFetch.map(async (slug) => {

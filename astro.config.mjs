@@ -9,4 +9,9 @@ export default defineConfig({
     remotePatterns: [{ protocol: "https" }],
   },
   integrations: [tailwind()],
+  vite: {
+    define: {
+      'process.env.REDIS_URL': JSON.stringify(process.env.REDIS_URL)
+    }
+  }
 });

@@ -19,8 +19,8 @@ async function createRedisClient(): Promise<Redis> {
       console.log(`Redis retry attempt ${times}, next try in ${delay}ms`);
       return delay + Math.random() * 200; // Add jitter
     },
-    maxRetriesPerRequest: 1,
-    enableOfflineQueue: false,
+    maxRetriesPerRequest: null,  // Allow retries for queued commands
+    enableOfflineQueue: true,     // Enable command queuing
     enableReadyCheck: true,
     reconnectOnError: (err) => {
       return err.message.includes('READONLY');
@@ -149,4 +149,15 @@ export async function getFeedMapping(feedId: string): Promise<FeedMapping | null
   }
 }
 
-// No need for manual cleanup as we're using TTL (expire) 
+// No need for manual cleanup as we're using TTL (expire)
+
+// Warm connection on startup
+(async () => {
+  try {
+    const client = await getRedisClient();
+    await client.ping();
+    console.log('Redis pre-connected successfully');
+  } catch (error) {
+    console.error('Redis pre-connection failed:', error);
+  }
+})(); 
