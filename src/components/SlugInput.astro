@@ -1,4 +1,5 @@
 ---
+import { getFeedMapping } from '../lib/db';
 interface Props {
   currentSlugs?: string[];
 }
@@ -40,6 +41,24 @@ const languages = [
           <option value={lang.value}>{lang.label}</option>
         ))}
       </select>
+    </div>
+
+    <div class="flex gap-2">
+      <input
+        type="text"
+        id="feed-id-input"
+        placeholder="Enter feed ID to import..."
+        class="flex-1 px-3 sm:px-4 py-2 bg-primary rounded-lg border border-hover/30 focus:outline-none focus:border-accent/50 transition-colors text-sm sm:text-base"
+      />
+      <button
+        id="import-feed"
+        class="px-4 py-2 bg-secondary hover:bg-hover transition-colors rounded-lg text-sm sm:text-base flex items-center gap-2"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Import Feed
+      </button>
     </div>
 
     <div id="search-results" class="hidden space-y-2">
@@ -95,6 +114,8 @@ const languages = [
   const slugList = document.getElementById('slug-list');
   const generateRSSLink = document.getElementById('generate-rss');
   const langSelect = document.getElementById('lang-select') as HTMLSelectElement;
+  const feedIdInput = document.getElementById('feed-id-input') as HTMLInputElement;
+  const importFeedButton = document.getElementById('import-feed');
 
   // Load saved slugs from localStorage
   let slugs = new Set(JSON.parse(localStorage.getItem('comic-slugs') || '[]'));
@@ -410,6 +431,62 @@ const languages = [
     }
   }
 
+  // Import feed functionality
+  importFeedButton?.addEventListener('click', async () => {
+    const feedId = feedIdInput.value.trim();
+    if (!feedId) return;
+
+    try {
+      importFeedButton.disabled = true;
+      importFeedButton.innerHTML = `
+        <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </svg>
+        Importing...
+      `;
+
+      const response = await fetch(`/api/feed/${feedId}`);
+      if (!response.ok) throw new Error('Failed to fetch feed');
+      
+      const { slugs: feedSlugs, lang } = await response.json();
+      
+      // Update language if provided
+      if (lang && langSelect) {
+        langSelect.value = lang;
+      }
+
+      // Add new slugs to existing collection
+      feedSlugs.forEach((slug: string) => slugs.add(slug));
+      
+      // Update UI
+      updateSlugs();
+      feedIdInput.value = '';
+
+      // Show success message
+      const successDiv = document.createElement('div');
+      successDiv.className = 'text-sm text-green-500 mt-1';
+      successDiv.textContent = 'Feed imported successfully!';
+      feedIdInput.parentNode?.appendChild(successDiv);
+      setTimeout(() => successDiv.remove(), 3000);
+
+    } catch (error) {
+      console.error('Failed to import feed:', error);
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'text-sm text-red-500 mt-1';
+      errorDiv.textContent = 'Failed to import feed. Please check the feed ID and try again.';
+      feedIdInput.parentNode?.appendChild(errorDiv);
+      setTimeout(() => errorDiv.remove(), 3000);
+    } finally {
+      importFeedButton.disabled = false;
+      importFeedButton.innerHTML = `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Import Feed
+      `;
+    }
+  });
+
   // Initial render
   renderSlugs();
   updateRSSLink();
@@ -423,4 +500,4 @@ const languages = [
       searchResults?.classList.add('hidden');
     }
   });
-</script> 
+</script>
