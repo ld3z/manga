@@ -66,6 +66,20 @@ const languages = [
     </div>
   </div>
 
+  <div class="flex justify-between items-center">
+    <h2 class="text-lg font-medium">Selected Comics</h2>
+    <button
+      id="clear-all"
+      class="px-3 py-1.5 text-sm text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-2"
+      style="display: none;"
+    >
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+      Clear All
+    </button>
+  </div>
+
   <div id="slug-list" class="space-y-2">
     {currentSlugs.map(slug => (
       <div class="flex items-center justify-between p-3 bg-primary rounded-lg border border-hover/30" data-slug={slug}>
@@ -116,6 +130,7 @@ const languages = [
   const langSelect = document.getElementById('lang-select') as HTMLSelectElement;
   const feedIdInput = document.getElementById('feed-id-input') as HTMLInputElement;
   const importFeedButton = document.getElementById('import-feed');
+  const clearAllButton = document.getElementById('clear-all');
 
   // Load saved slugs from localStorage
   let slugs = new Set(JSON.parse(localStorage.getItem('comic-slugs') || '[]'));
@@ -124,7 +139,22 @@ const languages = [
     localStorage.setItem('comic-slugs', JSON.stringify([...slugs]));
     updateRSSLink();
     renderSlugs();
+    updateClearAllButton();
   }
+
+  function updateClearAllButton() {
+    if (clearAllButton) {
+      clearAllButton.style.display = slugs.size > 0 ? 'flex' : 'none';
+    }
+  }
+
+  // Clear all functionality
+  clearAllButton?.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear all comics? This cannot be undone.')) {
+      slugs.clear();
+      updateSlugs();
+    }
+  });
 
   async function renderSlugs() {
     if (!slugList) return;
@@ -490,6 +520,7 @@ const languages = [
   // Initial render
   renderSlugs();
   updateRSSLink();
+  updateClearAllButton();
 
   // Update RSS link when language changes
   langSelect?.addEventListener('change', () => updateRSSLink());
